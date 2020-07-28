@@ -9,7 +9,7 @@ defmodule Engine.Deck do
   alias Engine.Card
 
   cards =
-    for suit <- ~w(♠️ ♥ ♦️ ♣️)a do
+    for suit <- ~w(diamonds spades hearts clubs)a do
       for symbol <- ~w(3 2 A 4 5 6 7 Q J K) do
         Card.new(suit, symbol)
       end

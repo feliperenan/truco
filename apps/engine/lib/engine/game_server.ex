@@ -26,7 +26,7 @@ defmodule Engine.GameServer do
   TODO: add docs.
   """
   def put_player_card(player_name, card_position) do
-    GenServer.call({:put_player_card, player_name, card_position})
+    GenServer.call(__MODULE__, {:put_player_card, player_name, card_position})
   end
 
   # --- GenServer callbacks
@@ -74,10 +74,10 @@ defmodule Engine.GameServer do
         #   * start another round if there is no winner
         #  if doesn't:
         #   * set next player according to his/her number.
-        {:ok, game}
+        {:reply, {:ok, game}, game}
 
       {:error, error} ->
-        {:noreply, {:error, error}, game}
+        {:reply, {:error, error}, game}
     end
   end
 end

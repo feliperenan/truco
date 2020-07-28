@@ -1,6 +1,7 @@
 defmodule Engine.Game do
   defstruct players: [],
             rounds: [],
+            current_round: 0,
             finished?: false,
             score: nil,
             winner: nil
@@ -36,8 +37,8 @@ defmodule Engine.Game do
 
   @doc """
   TODO: add docs.
-  # put the player card in the played cards in the current round
-  # check if someone finished this round and,
+  # * put the player card in the played cards in the current round ✅
+  # * check if someone finished this round and,
   #  * if so:
   #   * check who won the round.
   #   * increase points for the round winner
@@ -45,10 +46,31 @@ defmodule Engine.Game do
   #   * start another round if there is no winner
   #  if doesn't:
   #   * set next player according to his/her number.
+  # * If someone win the round, he will be the one that will start. Check if number of the players
+  #   should be changed.
   """
-  def put_player_card(%__MODULE__{rounds: rounds}, player_name, card_position) do
-    round = List.last(rounds)
+  def put_player_card(%__MODULE__{} = game, player_name, card_position) do
+    %{rounds: rounds, players: players, current_round: current_round} = game
 
-    Round.put_player_card(round, player_name, card_position)
+    case Enum.find(players, &(&1.name == player_name)) do
+      nil ->
+        {:error, :player_not_found}
+
+      player ->
+        %Engine.Round{current_player: current_player} = Enum.at(rounds, current_round)
+
+        if current_player == player.number do
+          rounds =
+            List.update_at(
+              rounds,
+              current_round,
+              &Round.put_player_card(&1, player, card_position)
+            )
+
+          {:ok, %{game | rounds: rounds}}
+        else
+          {:error, :not_player_turn}
+        end
+    end
   end
 end
