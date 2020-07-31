@@ -8,11 +8,15 @@ defmodule Engine.Game do
 
   alias Engine.{Player, Round}
 
+  require Integer
+
   @doc """
   TODO: add docs.
   """
   def add_player(%__MODULE__{players: players} = game, player_name) when length(players) < 4 do
-    player = Player.new(player_name, length(players) + 1)
+    number = length(players) + 1
+    team_id = if Integer.is_odd(number), do: 1, else: 2
+    player = Player.new(player_name, number, team_id)
 
     {:ok, Map.update(game, :players, player, &(&1 ++ [player]))}
   end

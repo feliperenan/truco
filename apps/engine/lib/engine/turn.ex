@@ -28,6 +28,6 @@ defmodule Engine.Turn do
     # TODO: set tied when last two cards are the same strength
     {player, _card} = List.first(played_cards)
 
-    player.number
+    player
   end
 end

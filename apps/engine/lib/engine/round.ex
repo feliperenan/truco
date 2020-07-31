@@ -2,15 +2,14 @@ defmodule Engine.Round do
   defstruct players_hands: [],
             deck: [],
             card_faced_up: nil,
-            current_turn: 1,
             turns: [],
             current_player: 1,
             finished?: false,
-            points: 0,
-            winner: nil,
+            points: 1,
+            team_winner: nil,
             total_players: 0
 
-  alias Engine.{Card, Deck, PlayerHand, Turn}
+  alias Engine.{Card, Deck, Player, PlayerHand, Turn}
 
   @doc """
   TODO: add docs.
@@ -70,8 +69,12 @@ defmodule Engine.Round do
         players_hands: players_hands,
         current_player: set_next_player(turn, current_player, total_players)
     }
+    |> check_team_winner()
   end
 
+  # Discard the given card position form the player's hands.
+  #
+  # Returns a tuple with the discarded card and updated players hands.
   defp discard_player_card(%__MODULE__{players_hands: players_hands}, player, card_position) do
     player_hand = Enum.find(players_hands, &(&1.player.name == player.name))
     {card, cards} = List.pop_at(player_hand.cards, card_position)
@@ -113,5 +116,70 @@ defmodule Engine.Round do
        when current_player < total_players,
        do: current_player + 1
 
-  defp set_next_player(%Turn{winner: winner}, _, _), do: winner
+  defp set_next_player(%Turn{winner: winner}, _, _), do: winner.number
+
+  # there is no team winner when only the first turn has been played.
+  defp check_team_winner(%__MODULE__{turns: [_turn]} = round),
+    do: %{round | finished?: false}
+
+  # there is no team winner when the second round is not finished
+  defp check_team_winner(%__MODULE__{turns: [_turn, %Turn{finished?: false}]} = round),
+    do: %{round | finished?: false}
+
+  # when first round is tied the second winner is the team winner.
+  defp check_team_winner(
+         %__MODULE__{
+           turns: [
+             %Turn{winner: :tied},
+             %Turn{winner: winner}
+           ]
+         } = round
+       ),
+       do: %{round | finished?: true, team_winner: winner.team_id}
+
+  # when the second round is tied the first winner is the team winner.
+  defp check_team_winner(
+         %__MODULE__{
+           turns: [
+             %Turn{winner: winner},
+             %Turn{winner: :tied}
+           ]
+         } = round
+       ),
+       do: %{round | finished?: true, team_winner: winner.team_id}
+
+  # when the same team win the first two rounds they will be the winner.
+  defp check_team_winner(
+         %__MODULE__{
+           turns: [
+             %Turn{winner: %Player{team_id: team_id}},
+             %Turn{winner: %Player{team_id: team_id}}
+           ]
+         } = round
+       ),
+       do: %{round | finished?: true, team_winner: team_id}
+
+  # when one team win the first and third round they will be the winner.
+  defp check_team_winner(
+         %__MODULE__{
+           turns: [
+             %Turn{winner: %Player{team_id: team_id}},
+             %Turn{winner: %Player{team_id: _team_id}},
+             %Turn{winner: %Player{team_id: team_id}}
+           ]
+         } = round
+       ),
+       do: %{round | finished?: true, team_winner: team_id}
+
+  # when one team win the second and third round they will be the winner.
+  defp check_team_winner(
+         %__MODULE__{
+           turns: [
+             %Turn{winner: %Player{team_id: _team_id}},
+             %Turn{winner: %Player{team_id: team_id}},
+             %Turn{winner: %Player{team_id: team_id}}
+           ]
+         } = round
+       ),
+       do: %{round | finished?: true, team_winner: team_id}
 end
