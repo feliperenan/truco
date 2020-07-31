@@ -25,8 +25,8 @@ defmodule Engine.GameServer do
   @doc """
   TODO: add docs.
   """
-  def put_player_card(player_name, card_position) do
-    GenServer.call(__MODULE__, {:put_player_card, player_name, card_position})
+  def play_player_card(player_name, card_position) do
+    GenServer.call(__MODULE__, {:play_player_card, player_name, card_position})
   end
 
   # --- GenServer callbacks
@@ -57,23 +57,14 @@ defmodule Engine.GameServer do
   end
 
   @impl true
-  def handle_call({:put_player_card, _, _}, _from, %Engine.Game{finished?: true} = game) do
+  def handle_call({:play_player_card, _, _}, _from, %Engine.Game{finished?: true} = game) do
     {:reply, {:error, "this game is already finished"}, game}
   end
 
   @impl true
-  def handle_call({:put_player_card, player_name, card_position}, _from, game) do
-    case Engine.Game.put_player_card(game, player_name, card_position) do
+  def handle_call({:play_player_card, player_name, card_position}, _from, game) do
+    case Engine.Game.play_player_card(game, player_name, card_position) do
       {:ok, game} ->
-        # TODO:
-        # check if someone finished this round and,
-        #  * if so:
-        #   * check who won the round.
-        #   * increase points for the round winner
-        #   * check if the player has won the game
-        #   * start another round if there is no winner
-        #  if doesn't:
-        #   * set next player according to his/her number.
         {:reply, {:ok, game}, game}
 
       {:error, error} ->

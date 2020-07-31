@@ -57,7 +57,7 @@ defmodule Engine.Round do
   @doc """
   TODO: add docs.
   """
-  def put_player_card(%__MODULE__{} = round, player, card_position) do
+  def play_player_card(%__MODULE__{} = round, player, card_position) do
     %{next_player_id: next_player_id, total_players: total_players} = round
 
     {card, players_hands} = discard_player_card(round, player, card_position)
@@ -162,6 +162,29 @@ defmodule Engine.Round do
          } = round
        ),
        do: %{round | finished?: true, team_winner: team_id}
+
+  # there is no winner when both teams win one round.
+  defp check_team_winner(
+         %__MODULE__{
+           turns: [
+             %Turn{winner: %Player{team_id: _first_id}},
+             %Turn{winner: %Player{team_id: _second_id}}
+           ]
+         } = round
+       ),
+       do: %{round | finished?: false}
+
+  # there is no winner when the third round is not finished.
+  defp check_team_winner(
+         %__MODULE__{
+           turns: [
+             %Turn{},
+             %Turn{},
+             %Turn{finished?: false}
+           ]
+         } = round
+       ),
+       do: %{round | finished?: false}
 
   # when one team win the first and third round they will be the winner.
   defp check_team_winner(

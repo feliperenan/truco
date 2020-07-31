@@ -41,40 +41,41 @@ defmodule Engine.Game do
 
   @doc """
   TODO: add docs.
-  # * put the player card in the played cards in the current round ✅
-  # * check if someone finished this round and,
-  #  * if so:
-  #   * check who won the round.
-  #   * increase points for the round winner
-  #   * check if the player has won the game
-  #   * start another round if there is no winner
-  #  if doesn't:
-  #   * set next player according to his/her number.
-  # * If someone win the round, he will be the one that will start. Check if number of the players
-  #   should be changed.
+
+  * check if player has the given card according to the card position otherwise it will raise an
+   error in case of a invalid position.
   """
-  def put_player_card(%__MODULE__{} = game, player_name, card_position) do
-    %{rounds: rounds, players: players, current_round: current_round} = game
+  def play_player_card(%__MODULE__{} = game, player_name, card_position) do
+    %{rounds: rounds, players: players} = game
 
     case Enum.find(players, &(&1.name == player_name)) do
       nil ->
         {:error, :player_not_found}
 
       player ->
-        %Engine.Round{next_player_id: next_player_id} = Enum.at(rounds, current_round)
+        rounds
+        |> List.last()
+        |> do_play_player_card(player, card_position)
+        |> case do
+          %Engine.Round{finished?: true} = round ->
+            rounds = List.replace_at(rounds, -1, round)
+            new_round = Round.new(players)
 
-        if next_player_id == player.id do
-          rounds =
-            List.update_at(
-              rounds,
-              current_round,
-              &Round.put_player_card(&1, player, card_position)
-            )
+            {:ok, %{game | rounds: rounds ++ [new_round]}}
 
-          {:ok, %{game | rounds: rounds}}
-        else
-          {:error, :not_player_turn}
+          %Engine.Round{finished?: false} = round ->
+            {:ok, %{game | rounds: List.replace_at(rounds, -1, round)}}
         end
     end
   end
+
+  defp do_play_player_card(
+         %Round{next_player_id: player_id} = round,
+         %Player{id: player_id} = player,
+         card_position
+       ),
+       do: Round.play_player_card(round, player, card_position)
+
+  defp do_play_player_card(_round, _player, _card_position),
+    do: {:error, :not_player_turn}
 end
