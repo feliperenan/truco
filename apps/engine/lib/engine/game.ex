@@ -61,9 +61,9 @@ defmodule Engine.Game do
         {:error, :player_not_found}
 
       player ->
-        %Engine.Round{current_player: current_player} = Enum.at(rounds, current_round)
+        %Engine.Round{next_player_id: next_player_id} = Enum.at(rounds, current_round)
 
-        if current_player == player.number do
+        if next_player_id == player.id do
           rounds =
             List.update_at(
               rounds,

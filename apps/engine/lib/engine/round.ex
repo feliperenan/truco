@@ -3,7 +3,7 @@ defmodule Engine.Round do
             deck: [],
             card_faced_up: nil,
             turns: [],
-            current_player: 1,
+            next_player_id: 1,
             finished?: false,
             points: 1,
             team_winner: nil,
@@ -58,7 +58,7 @@ defmodule Engine.Round do
   TODO: add docs.
   """
   def put_player_card(%__MODULE__{} = round, player, card_position) do
-    %{current_player: current_player, total_players: total_players} = round
+    %{next_player_id: next_player_id, total_players: total_players} = round
 
     {card, players_hands} = discard_player_card(round, player, card_position)
     {turn, turns} = play_card_in_turn(round, player, card)
@@ -67,7 +67,7 @@ defmodule Engine.Round do
       round
       | turns: turns,
         players_hands: players_hands,
-        current_player: set_next_player(turn, current_player, total_players)
+        next_player_id: set_next_player(turn, next_player_id, total_players)
     }
     |> check_team_winner()
   end
@@ -108,15 +108,19 @@ defmodule Engine.Round do
     end
   end
 
-  defp set_next_player(%Turn{winner: nil}, current_player, total_players)
-       when total_players == current_player,
+  defp set_next_player(%Turn{winner: nil}, next_player_id, total_players)
+       when total_players == next_player_id,
        do: 1
 
-  defp set_next_player(%Turn{winner: nil}, current_player, total_players)
-       when current_player < total_players,
-       do: current_player + 1
+  defp set_next_player(%Turn{winner: nil}, next_player_id, total_players)
+       when next_player_id < total_players,
+       do: next_player_id + 1
 
-  defp set_next_player(%Turn{winner: winner}, _, _), do: winner.number
+  defp set_next_player(%Turn{winner: :tied}, next_player_id, total_players)
+       when next_player_id < total_players,
+       do: 1
+
+  defp set_next_player(%Turn{winner: winner}, _, _), do: winner.id
 
   # there is no team winner when only the first turn has been played.
   defp check_team_winner(%__MODULE__{turns: [_turn]} = round),
