@@ -1,7 +1,6 @@
 defmodule Engine.Game do
   defstruct players: [],
             rounds: [],
-            current_round: 0,
             finished?: false,
             score: nil,
             winner: nil
