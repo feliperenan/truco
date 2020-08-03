@@ -22,12 +22,12 @@ Engine.GameServer.start_link
 {:ok, game} = GameServer.play_player_card("Rebeca", 0)
 {:ok, game} = GameServer.play_player_card("Nice", 0)
 
-# Check rounds
-length(game.rounds)
-Enum.at(game.rounds, 0)
+# Check matches 
+length(game.matches)
+Enum.at(game.matches, 0)
 
 # Check points - returns %{1 => 0, 2 => 0} so that the key is the team_id and value the points.
-for round <- game.rounds, round.finished?, reduce: %{} do
+for round <- game.matches, round.finished?, reduce: %{} do
   acc -> Map.update(acc, round.team_winner, 0, &(&1 + round.points))
 end
 ```

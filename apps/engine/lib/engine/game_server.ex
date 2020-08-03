@@ -48,7 +48,7 @@ defmodule Engine.GameServer do
   @impl true
   def handle_call(:start_game, _from, game) do
     if Engine.Game.ready?(game) do
-      game = Engine.Game.start_round(game)
+      game = Engine.Game.start_match(game)
 
       {:reply, {:ok, game}, game}
     else

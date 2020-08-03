@@ -1,11 +1,11 @@
 defmodule Engine.Game do
   defstruct players: [],
-            rounds: [],
+            matches: [],
             finished?: false,
             score: nil,
             winner: nil
 
-  alias Engine.{Player, Round}
+  alias Engine.{Player, Match}
 
   require Integer
 
@@ -32,10 +32,10 @@ defmodule Engine.Game do
   @doc """
   TODO: add docs.
   """
-  def start_round(%__MODULE__{players: players} = game) do
-    round = Round.new(players)
+  def start_match(%__MODULE__{players: players} = game) do
+    match = Match.new(players)
 
-    %{game | rounds: game.rounds ++ [round]}
+    %{game | matches: game.matches ++ [match]}
   end
 
   @doc """
@@ -45,36 +45,36 @@ defmodule Engine.Game do
    error in case of a invalid position.
   """
   def play_player_card(%__MODULE__{} = game, player_name, card_position) do
-    %{rounds: rounds, players: players} = game
+    %{matches: matches, players: players} = game
 
     case Enum.find(players, &(&1.name == player_name)) do
       nil ->
         {:error, :player_not_found}
 
       player ->
-        rounds
+        matches
         |> List.last()
         |> do_play_player_card(player, card_position)
         |> case do
-          %Engine.Round{finished?: true} = round ->
-            rounds = List.replace_at(rounds, -1, round)
-            new_round = Round.new(players)
+          %Engine.Match{finished?: true} = match ->
+            matches = List.replace_at(matches, -1, match)
+            new_match = Match.new(players)
 
-            {:ok, %{game | rounds: rounds ++ [new_round]}}
+            {:ok, %{game | matches: matches ++ [new_match]}}
 
-          %Engine.Round{finished?: false} = round ->
-            {:ok, %{game | rounds: List.replace_at(rounds, -1, round)}}
+          %Engine.Match{finished?: false} = match ->
+            {:ok, %{game | matches: List.replace_at(matches, -1, match)}}
         end
     end
   end
 
   defp do_play_player_card(
-         %Round{next_player_id: player_id} = round,
+         %Match{next_player_id: player_id} = match,
          %Player{id: player_id} = player,
          card_position
        ),
-       do: Round.play_player_card(round, player, card_position)
+       do: Match.play_player_card(match, player, card_position)
 
-  defp do_play_player_card(_round, _player, _card_position),
-    do: {:error, :not_player_turn}
+  defp do_play_player_card(_match, _player, _card_position),
+    do: {:error, :not_player_round}
 end
