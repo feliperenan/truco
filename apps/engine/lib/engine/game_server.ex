@@ -4,12 +4,15 @@ defmodule Engine.GameServer do
   @doc """
   TODO: add docs.
   """
-  def start_link do
+  def start_link(_opts) do
     GenServer.start_link(__MODULE__, %Engine.Game{}, name: __MODULE__)
   end
 
   @doc """
-  TODO: add docs.
+  Join the given player name to the game.
+
+  For now only for players is allowed, so if an error will be raised in case more than that try to
+  join.
   """
   def join_player(player_name) do
     GenServer.call(__MODULE__, {:join_player, player_name})
