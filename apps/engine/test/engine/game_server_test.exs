@@ -68,7 +68,80 @@ defmodule Engine.GameServerTest do
 
       start_supervised!(child_spec)
 
-      {:error, "Game is not ready. Check if you have enough players."} = GameServer.start_game()
+      assert {:error, "Game is not ready. Check if you have enough players."} ==
+               GameServer.start_game()
+    end
+  end
+
+  describe "play_player_card/2" do
+    @game %Engine.Game{
+      finished?: false,
+      matches: [],
+      players: [
+        %Engine.Player{id: 1, name: "Felipe", team_id: 1},
+        %Engine.Player{id: 2, name: "Carlos", team_id: 2},
+        %Engine.Player{id: 3, name: "Rebeca", team_id: 1},
+        %Engine.Player{id: 4, name: "Nice", team_id: 2}
+      ],
+      score: nil,
+      winner: nil
+    }
+
+    test "players are able to put their card according to the given card position" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      {:ok, _game} = GameServer.start_game()
+
+      {:ok,
+       %Engine.Game{
+         matches: [
+           %Engine.Match{
+             rounds: [%Engine.Round{} = round]
+           }
+         ]
+       }} = GameServer.play_player_card("Felipe", 0)
+
+      refute round.finished?
+      refute round.winner
+      assert length(round.played_cards) == 1
+    end
+
+    test "finishes the round when all players put one card" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      {:ok, _game} = GameServer.start_game()
+
+      {:ok, _game} = GameServer.play_player_card("Felipe", 1)
+      {:ok, _game} = GameServer.play_player_card("Carlos", 0)
+      {:ok, _game} = GameServer.play_player_card("Rebeca", 2)
+
+      {:ok,
+       %Engine.Game{
+         matches: [
+           %Engine.Match{
+             rounds: [%Engine.Round{} = round],
+             players_hands: players_hands
+           }
+         ]
+       }} = GameServer.play_player_card("Nice", 2)
+
+      assert round.finished?
+      refute is_nil(round.winner)
+      assert length(round.played_cards) == 4
+
+      for player_hand <- players_hands do
+        assert length(player_hand.cards) == 2
+      end
     end
   end
 end

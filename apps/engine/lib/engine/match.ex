@@ -16,11 +16,8 @@ defmodule Engine.Match do
   """
   def new(players) when length(players) == 4 do
     {card_faced_up, deck} = build_start_deck()
-
-    players_hands =
-      deck
-      |> set_special(card_faced_up)
-      |> build_players_hands(players)
+    deck = set_special(deck, card_faced_up)
+    players_hands = build_players_hands(deck, players)
 
     %__MODULE__{
       card_faced_up: card_faced_up,

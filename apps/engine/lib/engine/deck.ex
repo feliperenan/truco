@@ -18,4 +18,6 @@ defmodule Engine.Deck do
   @cards List.flatten(cards)
 
   def new, do: Enum.shuffle(@cards)
+
+  def fixed, do: @cards
 end
