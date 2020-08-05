@@ -4,8 +4,8 @@ defmodule Engine.GameServer do
   @doc """
   TODO: add docs.
   """
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, %Engine.Game{}, name: __MODULE__)
+  def start_link(_opts, initial_state \\ %Engine.Game{}) do
+    GenServer.start_link(__MODULE__, initial_state, name: __MODULE__)
   end
 
   @doc """
@@ -19,7 +19,7 @@ defmodule Engine.GameServer do
   end
 
   @doc """
-  TODO: add docs.
+  Starts a game once it has enough players.
   """
   def start_game do
     GenServer.call(__MODULE__, :start_game)
