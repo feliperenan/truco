@@ -1,33 +1,21 @@
-# Truco
+# Truco Paulista
 
-## GameEngine
+Have you ever played truco paulista? Well, if you are from São Paulo/Brazil probably so. If you don't, that will be a good opportunity once you are familiar with the rules 😉.
 
-```
-alias Engine.{Game, GameServer, Player, Deck}
+I had this crazy idea to implement this game in Elixir then I could practice my architecture skills and of course play with Elixir/Erlang OTP processes. However, my main goal here is to have fun throughout this development and try out new things.
 
-Engine.GameServer.start_link
+## Rules
 
-# join players
-{:ok, game} = GameServer.join_player("Felipe")
-{:ok, game} = GameServer.join_player("Carlos")
-{:ok, game} = GameServer.join_player("Rebeca")
-{:ok, game} = GameServer.join_player("Nice")
+writing...
 
-# start the game
-{:ok, game} = GameServer.start_game()
+## Architecture
 
-# Play players card given the card position.
-{:ok, game} = GameServer.play_player_card("Felipe", 0)
-{:ok, game} = GameServer.play_player_card("Carlos", 0)
-{:ok, game} = GameServer.play_player_card("Rebeca", 0)
-{:ok, game} = GameServer.play_player_card("Nice", 0)
+writing...
 
-# Check matches 
-length(game.matches)
-Enum.at(game.matches, 0)
-
-# Check points - returns %{1 => 0, 2 => 0} so that the key is the team_id and value the points.
-for round <- game.matches, round.finished?, reduce: %{} do
-  acc -> Map.update(acc, round.team_winner, 0, &(&1 + round.points))
-end
-```
+## TODO
+- [ ] Allow users to ask "Truco", "Seis", "Nove" or "Doze" -> Sorry, those numbers make more sense in Portuguese in this case 🙈
+- [ ] Allow users to run away from the game
+- [ ] Allow game rooms to be created dynamically. Today just one can be started 😅
+- [ ] Allow up to 6 players. Today only 4 is supported.
+- [ ] Define winner once one team made 12 points.
+- [ ] Implement a test that simulates the entire game
