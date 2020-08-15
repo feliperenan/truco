@@ -11,10 +11,28 @@ defmodule Engine.Match do
 
   alias Engine.{Card, Deck, Player, PlayerHand, Round}
 
+  @type t :: %__MODULE__{}
+
+  @players_limit [2, 4]
+
   @doc """
-  TODO: add docs.
+  Start a new match according to the given players.
+
+  This function will: get a shuffled deck of cards, face up one random card, set the special cards,
+  build players hands and, start the first round.
+
+  ### Examples
+
+      players = [
+        %Player{id: 1, name: "Felipe", team_id: 1},
+        %Player{id: 2, name: "Carlos", team_id: 2}
+      ]
+      Match.new(players)
+      #=> %Match{}
+
   """
-  def new(players) when length(players) == 4 do
+  @spec new(list(Player.t())) :: t()
+  def new(players) when length(players) in @players_limit do
     {card_faced_up, deck} = build_start_deck()
     deck = set_special(deck, card_faced_up)
     players_hands = build_players_hands(deck, players)
@@ -26,6 +44,14 @@ defmodule Engine.Match do
       total_players: length(players_hands),
       rounds: [%Round{}]
     }
+  end
+
+  def new(players) when is_list(players) do
+    message = """
+    A match does not support #{length(players)} players. The total of players must be 2 or 4.
+    """
+
+    raise ArgumentError, message: message
   end
 
   defp set_special(deck, card_faced_up),
