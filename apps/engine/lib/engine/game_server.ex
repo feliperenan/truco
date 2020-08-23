@@ -70,6 +70,9 @@ defmodule Engine.GameServer do
       {:ok, game} ->
         {:reply, {:ok, game}, game}
 
+      {:finished, game} ->
+        {:reply, {:finished, game}, game}
+
       {:error, error} ->
         {:reply, {:error, error}, game}
     end

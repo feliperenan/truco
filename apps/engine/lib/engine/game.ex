@@ -2,7 +2,7 @@ defmodule Engine.Game do
   defstruct players: [],
             matches: [],
             finished?: false,
-            score: nil,
+            score: %{},
             winner: nil
 
   alias Engine.{Player, Match}
@@ -34,8 +34,18 @@ defmodule Engine.Game do
   """
   def start_match(%__MODULE__{players: players} = game) do
     match = Match.new(players)
+    score = build_initial_score(players)
 
-    %{game | matches: game.matches ++ [match]}
+    %{game | matches: game.matches ++ [match], score: score}
+  end
+
+  defp build_initial_score(players) do
+    [team_a_id, team_b_id] =
+      players
+      |> Enum.map(& &1.team_id)
+      |> Enum.uniq()
+
+    %{team_a_id => 0, team_b_id => 0}
   end
 
   @doc """
@@ -45,36 +55,54 @@ defmodule Engine.Game do
    error in case of a invalid position.
   """
   def play_player_card(%__MODULE__{} = game, player_name, card_position) do
-    %{matches: matches, players: players} = game
+    current_match = List.last(game.matches)
 
-    case Enum.find(players, &(&1.name == player_name)) do
+    with {:ok, player} <- find_player(game, player_name),
+         :ok <- check_player_round(current_match, player),
+         current_match <- Match.play_player_card(current_match, player, card_position) do
+      game
+      |> update_current_match(current_match)
+      |> may_finish_game(current_match)
+    end
+  end
+
+  defp find_player(game, player_name) do
+    case Enum.find(game.players, &(&1.name == player_name)) do
       nil ->
         {:error, :player_not_found}
 
       player ->
-        matches
-        |> List.last()
-        |> do_play_player_card(player, card_position)
-        |> case do
-          %Engine.Match{finished?: true} = match ->
-            matches = List.replace_at(matches, -1, match)
-            new_match = Match.new(players)
-
-            {:ok, %{game | matches: matches ++ [new_match]}}
-
-          %Engine.Match{finished?: false} = match ->
-            {:ok, %{game | matches: List.replace_at(matches, -1, match)}}
-        end
+        {:ok, player}
     end
   end
 
-  defp do_play_player_card(
-         %Match{next_player_id: player_id} = match,
-         %Player{id: player_id} = player,
-         card_position
-       ),
-       do: Match.play_player_card(match, player, card_position)
+  defp check_player_round(match, player) do
+    if match.next_player_id == player.id do
+      :ok
+    else
+      {:error, :not_player_round}
+    end
+  end
 
-  defp do_play_player_card(_match, _player, _card_position),
-    do: {:error, :not_player_round}
+  defp update_current_match(game, current_match) do
+    Map.update!(game, :matches, &List.replace_at(&1, -1, current_match))
+  end
+
+  defp may_finish_game(%__MODULE__{} = game, %Match{finished?: false}), do: {:ok, game}
+
+  defp may_finish_game(
+         %__MODULE__{score: score, players: players, matches: matches} = game,
+         %Match{finished?: true} = current_match
+       ) do
+    new_score = Map.update(score, current_match.team_winner, 0, &(&1 + current_match.points))
+
+    case Map.get(new_score, current_match.team_winner) do
+      points when points >= 12 ->
+        {:finished,
+         %{game | finished?: true, winner: current_match.team_winner, score: new_score}}
+
+      _points ->
+        {:ok, %{game | matches: matches ++ [Match.new(players)], score: new_score}}
+    end
+  end
 end

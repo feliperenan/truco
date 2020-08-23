@@ -8,7 +8,7 @@ This is the core of the game. Here you will find the rules and server implementa
 alias Engine.{Game, GameServer, Player, Deck}
 
 # Starts a game server
-Engine.GameServer.start_link
+Engine.GameServer.start_link(nil)
 
 # join players
 {:ok, game} = GameServer.join_player("Felipe")

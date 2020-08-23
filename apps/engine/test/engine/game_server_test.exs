@@ -23,7 +23,7 @@ defmodule Engine.GameServerTest do
                  %Engine.Player{id: 3, name: "Rebeca", team_id: 1},
                  %Engine.Player{id: 4, name: "Nice", team_id: 2}
                ],
-               score: nil,
+               score: %{},
                winner: nil
              }
 
@@ -82,9 +82,7 @@ defmodule Engine.GameServerTest do
         %Engine.Player{id: 2, name: "Carlos", team_id: 2},
         %Engine.Player{id: 3, name: "Rebeca", team_id: 1},
         %Engine.Player{id: 4, name: "Nice", team_id: 2}
-      ],
-      score: nil,
-      winner: nil
+      ]
     }
 
     test "players are able to put their card according to the given card position" do
@@ -120,7 +118,6 @@ defmodule Engine.GameServerTest do
       start_supervised!(child_spec)
 
       {:ok, _game} = GameServer.start_game()
-
       {:ok, _game} = GameServer.play_player_card("Felipe", 1)
       {:ok, _game} = GameServer.play_player_card("Carlos", 0)
       {:ok, _game} = GameServer.play_player_card("Rebeca", 2)
@@ -143,5 +140,38 @@ defmodule Engine.GameServerTest do
         assert length(player_hand.cards) == 2
       end
     end
+
+    test "finishes the game when some team reaches 12 points" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      game = GameServer.start_game() |> play_until_game_is_finished()
+
+      assert game.finished?
+      assert game.score |> Map.values() |> Enum.any?(&(&1 >= 12))
+    end
+
+    @players_map %{
+      1 => "Felipe",
+      2 => "Carlos",
+      3 => "Rebeca",
+      4 => "Nice"
+    }
+
+    defp play_until_game_is_finished({:ok, game}) do
+      %{next_player_id: next_player_id} = List.last(game.matches)
+      card_position = 0
+
+      @players_map
+      |> Map.get(next_player_id)
+      |> GameServer.play_player_card(card_position)
+      |> play_until_game_is_finished()
+    end
+
+    defp play_until_game_is_finished({:finished, game}), do: game
   end
 end
