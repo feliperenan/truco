@@ -59,7 +59,7 @@ defmodule Engine.Match do
 
   defp build_start_deck do
     deck = Deck.new()
-    random_position = Enum.random(0..length(deck))
+    random_position = Enum.random(0..(length(deck) - 1))
 
     List.pop_at(deck, random_position)
   end
@@ -148,9 +148,20 @@ defmodule Engine.Match do
   defp check_team_winner(%__MODULE__{rounds: [_round]} = match),
     do: %{match | finished?: false}
 
-  # there is no team winner when the second match is not finished
+  # there is no team winner when the second match is not finished.
   defp check_team_winner(%__MODULE__{rounds: [_round, %Round{finished?: false}]} = match),
     do: %{match | finished?: false}
+
+  # there is no team winner when the first and second match is tied.
+  defp check_team_winner(
+         %__MODULE__{
+           rounds: [
+             %Round{winner: :tied},
+             %Round{winner: :tied}
+           ]
+         } = match
+       ),
+       do: %{match | finished?: false}
 
   # when first match is tied the second winner is the team winner.
   defp check_team_winner(
@@ -226,6 +237,30 @@ defmodule Engine.Match do
            rounds: [
              %Round{winner: %Player{team_id: _team_id}},
              %Round{winner: %Player{team_id: team_id}},
+             %Round{winner: %Player{team_id: team_id}}
+           ]
+         } = match
+       ),
+       do: %{match | finished?: true, team_winner: team_id}
+
+  # when the third round is tied the team winner will be the team who won the first round.
+  defp check_team_winner(
+         %__MODULE__{
+           rounds: [
+             %Round{winner: %Player{team_id: team_id}},
+             %Round{winner: %Player{team_id: _team_id}},
+             %Round{winner: :tied}
+           ]
+         } = match
+       ),
+       do: %{match | finished?: true, team_winner: team_id}
+
+  # when first and second round is tied, the team winner will be the one who won the third one.
+  defp check_team_winner(
+         %__MODULE__{
+           rounds: [
+             %Round{winner: :tied},
+             %Round{winner: :tied},
              %Round{winner: %Player{team_id: team_id}}
            ]
          } = match
