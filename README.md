@@ -16,6 +16,3 @@ writing...
 - [ ] Allow users to ask "Truco", "Seis", "Nove" or "Doze" -> Sorry, those numbers make more sense in Portuguese in this case 🙈
 - [ ] Allow users to run away from the game
 - [ ] Allow game rooms to be created dynamically. Today just one can be started 😅
-- [ ] Allow up to 6 players. Today only 4 is supported.
-- [ ] Define winner once one team made 12 points.
-- [ ] Implement a test that simulates the entire game
