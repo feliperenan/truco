@@ -78,6 +78,14 @@ defmodule Engine.Match do
   end
 
   @doc """
+  Changes the given match to finished setting the given team_id as winner.
+  """
+  @spec finish_match(t(), integer()) :: t()
+  def finish_match(%__MODULE__{} = match, team_id) do
+    %{match | finished?: true, team_winner: team_id}
+  end
+
+  @doc """
   TODO: add docs.
   """
   def play_player_card(%__MODULE__{} = match, player, card_position) do
@@ -266,4 +274,15 @@ defmodule Engine.Match do
          } = match
        ),
        do: %{match | finished?: true, team_winner: team_id}
+
+  @doc """
+  Increase match points to +3. Since the game already starts with 1 point, only 2 points will be
+  increased when it is the first truco request
+  """
+  @spec increase_points(t()) :: t()
+  def increase_points(%__MODULE__{points: points} = match) when points == 1,
+    do: %{match | points: points + 2}
+
+  def increase_points(%__MODULE__{points: points} = match),
+    do: %{match | points: points + 3}
 end
