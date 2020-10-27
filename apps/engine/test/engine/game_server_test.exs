@@ -1,7 +1,7 @@
 defmodule Engine.GameServerTest do
   use ExUnit.Case
 
-  alias Engine.GameServer
+  alias Engine.{Game, GameServer}
 
   doctest GameServer
 
@@ -173,5 +173,220 @@ defmodule Engine.GameServerTest do
     end
 
     defp play_until_game_is_finished({:finished, game}), do: game
+  end
+
+  describe "truco/1" do
+    @game %Engine.Game{
+      finished?: false,
+      matches: [],
+      players: [
+        %Engine.Player{id: 1, name: "Felipe", team_id: 1},
+        %Engine.Player{id: 2, name: "Carlos", team_id: 2},
+        %Engine.Player{id: 3, name: "Rebeca", team_id: 1},
+        %Engine.Player{id: 4, name: "Nice", team_id: 2}
+      ]
+    }
+
+    test "players may ask truco in their turn" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      GameServer.start_game()
+
+      {:ok, game} = GameServer.truco("Felipe")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Nice", "yes")
+
+      current_match = List.last(game.matches)
+
+      assert current_match.points == 3
+      refute game.blocked?
+    end
+
+    test "players cannot ask truco when it is not their turn" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      GameServer.start_game()
+
+      assert {:error, :not_player_turn} = GameServer.truco("Nice")
+    end
+
+    test "match will be finished in case a 'no' answer" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      GameServer.start_game()
+
+      {:ok, game} = GameServer.truco("Felipe")
+
+      assert game.blocked?
+
+      {:ok, %Game{matches: [last_match, _new_match]}} = GameServer.answer("Carlos", "no")
+
+      assert last_match.finished?
+    end
+
+    test "players can ask for increase after a truco request" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      GameServer.start_game()
+
+      {:ok, game} = GameServer.truco("Felipe")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Nice", "increase")
+
+      assert game.blocked?
+
+      {:ok, %Game{matches: [current_match]} = game} = GameServer.answer("Rebeca", "yes")
+
+      refute game.blocked?
+      assert current_match.points == 6
+    end
+
+    test "players can increase match points up to 12" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      GameServer.start_game()
+
+      {:ok, game} = GameServer.truco("Felipe")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Nice", "increase")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Rebeca", "increase")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Carlos", "increase")
+
+      assert game.blocked?
+
+      {:ok, %Game{matches: [current_match]} = game} = GameServer.answer("Felipe", "yes")
+
+      refute game.blocked?
+      assert current_match.points == 12
+    end
+
+    test "last answer must be yes or no" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      GameServer.start_game()
+
+      {:ok, game} = GameServer.truco("Felipe")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Nice", "increase")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Rebeca", "increase")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Carlos", "increase")
+
+      assert game.blocked?
+
+      {:error, :points_cannot_be_increased} = GameServer.answer("Felipe", "increase")
+    end
+
+    test "cannot ask truco after once match points reached 12" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      GameServer.start_game()
+
+      {:ok, game} = GameServer.truco("Felipe")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Nice", "increase")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Rebeca", "increase")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer("Carlos", "increase")
+
+      assert game.blocked?
+
+      {:ok, _game} = GameServer.answer("Felipe", "yes")
+
+      {:error, :points_cannot_be_increased} = GameServer.truco("Felipe")
+    end
+
+    test "players cannot answer when there is no truco" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      GameServer.start_game()
+
+      assert {:error, :game_unblocked} = GameServer.answer("Nice", "yes")
+    end
+
+    test "teams cannot increase points twice in row" do
+      child_spec = %{
+        id: GameServer,
+        start: {GameServer, :start_link, [nil, @game]}
+      }
+
+      start_supervised!(child_spec)
+
+      GameServer.start_game()
+
+      {:ok, game} = GameServer.truco("Felipe")
+
+      assert game.blocked?
+
+      {:ok, _game} = GameServer.answer("Nice", "yes")
+
+      {:error, :not_player_team_turn} = GameServer.truco("Felipe")
+    end
   end
 end
