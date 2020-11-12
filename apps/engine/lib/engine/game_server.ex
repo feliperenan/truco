@@ -66,7 +66,8 @@ defmodule Engine.GameServer do
   The Game must be blocked while waiting for an answer. It means that players cannot play any card
   until a "yes" answer happens.
   """
-  @spec answer(String.t(), String.t()) :: {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
+  @spec answer(String.t(), String.t()) ::
+          {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
   def answer(player_name, answer) when answer in ~w(yes no increase) do
     GenServer.call(__MODULE__, {:answer, player_name, answer})
   end
@@ -129,7 +130,11 @@ defmodule Engine.GameServer do
   end
 
   @impl true
-  def handle_call({:answer, player_name, answer}, _, %Game{finished?: false, blocked?: true} = game) do
+  def handle_call(
+        {:answer, player_name, answer},
+        _,
+        %Game{finished?: false, blocked?: true} = game
+      ) do
     case Game.answer(game, player_name, answer) do
       {:ok, game} ->
         {:reply, {:ok, game}, game}
