@@ -28,7 +28,8 @@ defmodule TelegramClient.MixProject do
     [
       {:engine, in_umbrella: true},
       {:plug_cowboy, "~> 2.0"},
-      {:jason, "~> 1.2"}
+      {:jason, "~> 1.2"},
+      {:nadia, "~> 0.7.0"}
     ]
   end
 end

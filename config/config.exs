@@ -16,3 +16,6 @@ import Config
 #       format: "$date $time [$level] $metadata$message\n",
 #       metadata: [:user_id]
 #
+for config <- "../apps/*/config/config.exs" |> Path.expand(__DIR__) |> Path.wildcard() do
+  import_config config
+end

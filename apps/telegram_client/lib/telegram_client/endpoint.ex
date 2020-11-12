@@ -12,9 +12,15 @@ defmodule TelegramClient.Endpoint do
     send_resp(conn, 200, "pong")
   end
 
-  # Just print body params sent by telegram webhook for now. Here is a Telegram post sample:
+  # Endpoint set as webhook at Telegram API.
   #
-  #  curl -X POST -H "Content-Type: application/json" -H '{
+  # In case we want to change it, we just need to send the following request:
+  #
+  #   $ curl https://api.telegram.org/bot${key}?url\=${url}
+  #
+  # ### Examples
+  #
+  #   curl -X POST -H "Content-Type: application/json" -H '{
   #    "update_id":10000,
   #    "message":{
   #      "date":1441645532,
@@ -40,6 +46,8 @@ defmodule TelegramClient.Endpoint do
 
       #{inspect(conn.body_params)}
     """)
+
+    :ok = TelegramClient.Webhook.handle_message(conn.body_params)
 
     send_resp(conn, 200, "ok")
   end
