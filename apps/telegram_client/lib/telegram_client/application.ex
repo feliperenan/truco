@@ -11,8 +11,6 @@ defmodule TelegramClient.Application do
       {Plug.Cowboy, scheme: :http, plug: TelegramClient.Endpoint, options: [port: 4000]}
     ]
 
-    IO.inspect "hiiii"
-
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: TelegramClient.Supervisor]
