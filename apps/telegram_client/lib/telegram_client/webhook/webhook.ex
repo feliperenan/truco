@@ -1,7 +1,7 @@
 defmodule TelegramClient.Webhook do
   alias TelegramClient.Webhook.Message
 
-  import Logger
+  require Logger
 
   @doc """
   Handle message/command received from Telegram webhook.
@@ -19,8 +19,7 @@ defmodule TelegramClient.Webhook do
         # TODO:
         # * start a new game for this group and send this message to the bot.
         # * respond an error message in case it is not a chat group.
-        # * check if there is already a game started for this chat group.
-        Nadia.send_message(chat.id, "The game has been created and ready for receive players.")
+        Nadia.send_message(chat.id, "The game has been created and it is ready for receive players.")
 
         :ok
 

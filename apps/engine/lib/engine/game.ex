@@ -10,11 +10,9 @@ defmodule Engine.Game do
   alias Engine.{Player, Match}
 
   @type t :: %__MODULE__{}
+  @type answers :: :yes | :no | :increase
 
-  @type player_error ::
-          {:error, :player_not_found}
-          | {:error, :not_player_turn}
-          | {:error, :not_player_team_turn}
+  @type player_error :: {:error, :player_not_found} | {:error, :not_player_turn}
 
   require Integer
 
@@ -90,8 +88,8 @@ defmodule Engine.Game do
   answered "increase". Teams can be in this loop until points reachs 12, after that the game will
   be unblocked.
   """
-  @spec answer(t(), String.t(), String.t()) :: {:ok, t()} | {:finished, t()} | player_error()
-  def answer(%__MODULE__{} = game, player_name, "no") do
+  @spec answer(t(), String.t(), answers()) :: {:ok, t()} | {:finished, t()} | player_error()
+  def answer(%__MODULE__{} = game, player_name, :no) do
     current_match = List.last(game.matches)
 
     with {:ok, player} <- find_player(game, player_name),
@@ -103,7 +101,7 @@ defmodule Engine.Game do
     end
   end
 
-  def answer(%__MODULE__{} = game, player_name, "yes") do
+  def answer(%__MODULE__{} = game, player_name, :yes) do
     current_match = List.last(game.matches)
 
     with {:ok, player} <- find_player(game, player_name),
@@ -115,7 +113,7 @@ defmodule Engine.Game do
     end
   end
 
-  def answer(%__MODULE__{} = game, player_name, "increase") do
+  def answer(%__MODULE__{} = game, player_name, :increase) do
     current_match = List.last(game.matches)
 
     with {:ok, player} <- find_player(game, player_name),
@@ -137,7 +135,7 @@ defmodule Engine.Game do
     if game.blocked_by != player.team_id do
       :ok
     else
-      {:error, :not_player_team_turn}
+      {:error, :not_player_turn}
     end
   end
 
@@ -150,11 +148,14 @@ defmodule Engine.Game do
   end
 
   @doc """
-  TODO: add docs.
+  Play the given card position for the the given player's name.
 
-  * check if player has the given card according to the card position otherwise it will raise an
-   error in case of a invalid position.
+  TODO:
+
+    * check if player has the given card according to the card position otherwise it will raise an
+     error in case of a invalid position.
   """
+  @spec play_player_card(t(), String.t(), integer()) :: player_error() | {:ok, t()} | {:finished, t()}
   def play_player_card(%__MODULE__{} = game, player_name, card_position) do
     current_match = List.last(game.matches)
 
@@ -196,8 +197,7 @@ defmodule Engine.Game do
 
     case Map.get(new_score, current_match.team_winner) do
       points when points >= 12 ->
-        {:finished,
-         %{game | finished?: true, winner: current_match.team_winner, score: new_score}}
+        {:finished, %{game | finished?: true, winner: current_match.team_winner, score: new_score}}
 
       _points ->
         {:ok, %{game | matches: game.matches ++ [Match.new(game.players)], score: new_score}}

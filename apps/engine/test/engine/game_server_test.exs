@@ -5,14 +5,29 @@ defmodule Engine.GameServerTest do
 
   doctest GameServer
 
-  describe "join_player/2" do
-    test "join players and define their id incrementally" do
-      start_supervised!(GameServer)
+  @game_name "test-game"
 
-      {:ok, _game} = GameServer.join_player("Felipe")
-      {:ok, _game} = GameServer.join_player("Carlos")
-      {:ok, _game} = GameServer.join_player("Rebeca")
-      {:ok, game} = GameServer.join_player("Nice")
+  defp start_game_server(context) do
+    game = Map.get(context, :game, %Game{})
+
+    child_spec = %{
+      id: GameServer,
+      start: {GameServer, :start_link, [@game_name, game]}
+    }
+
+    start_supervised!(child_spec)
+
+    :ok
+  end
+
+  describe "join_player/2" do
+    setup :start_game_server
+
+    test "join players and define their id incrementally" do
+      {:ok, _game} = GameServer.join_player(@game_name, "Felipe")
+      {:ok, _game} = GameServer.join_player(@game_name, "Carlos")
+      {:ok, _game} = GameServer.join_player(@game_name, "Rebeca")
+      {:ok, game} = GameServer.join_player(@game_name, "Nice")
 
       assert game == %Engine.Game{
                finished?: false,
@@ -27,11 +42,11 @@ defmodule Engine.GameServerTest do
                winner: nil
              }
 
-      assert {:error, "This game has already 4 players."} == GameServer.join_player("Renan")
+      assert {:error, "This game has already 4 players."} == GameServer.join_player(@game_name, "Renan")
     end
   end
 
-  describe "start_game/0" do
+  describe "start_game/1" do
     @game %Engine.Game{
       finished?: false,
       matches: [],
@@ -46,14 +61,9 @@ defmodule Engine.GameServerTest do
     }
 
     test "starts the game when there are enough players" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
+      start_game_server(%{game: @game})
 
-      start_supervised!(child_spec)
-
-      {:ok, game} = GameServer.start_game()
+      {:ok, game} = GameServer.start_game(@game_name)
 
       assert length(game.matches) == 1
     end
@@ -61,19 +71,16 @@ defmodule Engine.GameServerTest do
     test "returns an error when there are no enough players" do
       game_missing_one_player = Map.update!(@game, :players, &List.delete_at(&1, -1))
 
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, game_missing_one_player]}
-      }
-
-      start_supervised!(child_spec)
+      start_game_server(%{game: game_missing_one_player})
 
       assert {:error, "Game is not ready. Check if you have enough players."} ==
-               GameServer.start_game()
+               GameServer.start_game(@game_name)
     end
   end
 
   describe "play_player_card/2" do
+    setup :start_game_server
+
     @game %Engine.Game{
       finished?: false,
       matches: [],
@@ -85,15 +92,9 @@ defmodule Engine.GameServerTest do
       ]
     }
 
+    @tag game: @game
     test "players are able to put their card according to the given card position" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
-
-      start_supervised!(child_spec)
-
-      {:ok, _game} = GameServer.start_game()
+      {:ok, _game} = GameServer.start_game(@game_name)
 
       {:ok,
        %Engine.Game{
@@ -102,25 +103,19 @@ defmodule Engine.GameServerTest do
              rounds: [%Engine.Round{} = round]
            }
          ]
-       }} = GameServer.play_player_card("Felipe", 0)
+       }} = GameServer.play_player_card(@game_name, "Felipe", 0)
 
       refute round.finished?
       refute round.winner
       assert length(round.played_cards) == 1
     end
 
+    @tag game: @game
     test "finishes the round when all players put one card" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
-
-      start_supervised!(child_spec)
-
-      {:ok, _game} = GameServer.start_game()
-      {:ok, _game} = GameServer.play_player_card("Felipe", 1)
-      {:ok, _game} = GameServer.play_player_card("Carlos", 0)
-      {:ok, _game} = GameServer.play_player_card("Rebeca", 2)
+      {:ok, _game} = GameServer.start_game(@game_name)
+      {:ok, _game} = GameServer.play_player_card(@game_name, "Felipe", 1)
+      {:ok, _game} = GameServer.play_player_card(@game_name, "Carlos", 0)
+      {:ok, _game} = GameServer.play_player_card(@game_name, "Rebeca", 2)
 
       {:ok,
        %Engine.Game{
@@ -130,7 +125,7 @@ defmodule Engine.GameServerTest do
              players_hands: players_hands
            }
          ]
-       }} = GameServer.play_player_card("Nice", 2)
+       }} = GameServer.play_player_card(@game_name, "Nice", 2)
 
       assert round.finished?
       refute is_nil(round.winner)
@@ -141,15 +136,12 @@ defmodule Engine.GameServerTest do
       end
     end
 
+    @tag game: @game
     test "finishes the game when some team reaches 12 points" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
-
-      start_supervised!(child_spec)
-
-      game = GameServer.start_game() |> play_until_game_is_finished()
+      game =
+        @game_name
+        |> GameServer.start_game()
+        |> play_until_game_is_finished()
 
       assert game.finished?
       assert game.score |> Map.values() |> Enum.any?(&(&1 >= 12))
@@ -165,10 +157,10 @@ defmodule Engine.GameServerTest do
     defp play_until_game_is_finished({:ok, game}) do
       %{next_player_id: next_player_id} = List.last(game.matches)
       card_position = 0
+      player_name = Map.get(@players_map, next_player_id)
 
-      @players_map
-      |> Map.get(next_player_id)
-      |> GameServer.play_player_card(card_position)
+      @game_name
+      |> GameServer.play_player_card(player_name, card_position)
       |> play_until_game_is_finished()
     end
 
@@ -176,6 +168,8 @@ defmodule Engine.GameServerTest do
   end
 
   describe "truco/1" do
+    setup :start_game_server
+
     @game %Engine.Game{
       finished?: false,
       matches: [],
@@ -187,21 +181,15 @@ defmodule Engine.GameServerTest do
       ]
     }
 
+    @tag game: @game
     test "players may ask truco in their turn" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
+      GameServer.start_game(@game_name)
 
-      start_supervised!(child_spec)
-
-      GameServer.start_game()
-
-      {:ok, game} = GameServer.truco("Felipe")
+      {:ok, game} = GameServer.truco(@game_name, "Felipe")
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Nice", "yes")
+      {:ok, game} = GameServer.answer(@game_name, "Nice", :yes)
 
       current_match = List.last(game.matches)
 
@@ -209,184 +197,136 @@ defmodule Engine.GameServerTest do
       refute game.blocked?
     end
 
+    @tag game: @game
     test "players cannot ask truco when it is not their turn" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
+      GameServer.start_game(@game_name)
 
-      start_supervised!(child_spec)
-
-      GameServer.start_game()
-
-      assert {:error, :not_player_turn} = GameServer.truco("Nice")
+      assert {:error, :not_player_turn} = GameServer.truco(@game_name, "Nice")
     end
 
+    @tag game: @game
     test "match will be finished in case a 'no' answer" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
+      GameServer.start_game(@game_name)
 
-      start_supervised!(child_spec)
-
-      GameServer.start_game()
-
-      {:ok, game} = GameServer.truco("Felipe")
+      {:ok, game} = GameServer.truco(@game_name, "Felipe")
 
       assert game.blocked?
 
-      {:ok, %Game{matches: [last_match, _new_match]}} = GameServer.answer("Carlos", "no")
+      {:ok, %Game{matches: [last_match, _new_match]}} = GameServer.answer(@game_name, "Carlos", :no)
 
       assert last_match.finished?
     end
 
+    @tag game: @game
     test "players can ask for increase after a truco request" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
+      GameServer.start_game(@game_name)
 
-      start_supervised!(child_spec)
-
-      GameServer.start_game()
-
-      {:ok, game} = GameServer.truco("Felipe")
+      {:ok, game} = GameServer.truco(@game_name, "Felipe")
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Nice", "increase")
+      {:ok, game} = GameServer.answer(@game_name, "Nice", :increase)
 
       assert game.blocked?
 
-      {:ok, %Game{matches: [current_match]} = game} = GameServer.answer("Rebeca", "yes")
+      {:ok, %Game{matches: [current_match]} = game} = GameServer.answer(@game_name, "Rebeca", :yes)
 
       refute game.blocked?
       assert current_match.points == 6
     end
 
+    @tag game: @game
     test "players can increase match points up to 12" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
+      GameServer.start_game(@game_name)
 
-      start_supervised!(child_spec)
-
-      GameServer.start_game()
-
-      {:ok, game} = GameServer.truco("Felipe")
+      {:ok, game} = GameServer.truco(@game_name, "Felipe")
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Nice", "increase")
+      {:ok, game} = GameServer.answer(@game_name, "Nice", :increase)
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Rebeca", "increase")
+      {:ok, game} = GameServer.answer(@game_name, "Rebeca", :increase)
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Carlos", "increase")
+      {:ok, game} = GameServer.answer(@game_name, "Carlos", :increase)
 
       assert game.blocked?
 
-      {:ok, %Game{matches: [current_match]} = game} = GameServer.answer("Felipe", "yes")
+      {:ok, %Game{matches: [current_match]} = game} = GameServer.answer(@game_name, "Felipe", :yes)
 
       refute game.blocked?
       assert current_match.points == 12
     end
 
+    @tag game: @game
     test "last answer must be yes or no" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
+      GameServer.start_game(@game_name)
 
-      start_supervised!(child_spec)
-
-      GameServer.start_game()
-
-      {:ok, game} = GameServer.truco("Felipe")
+      {:ok, game} = GameServer.truco(@game_name, "Felipe")
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Nice", "increase")
+      {:ok, game} = GameServer.answer(@game_name, "Nice", :increase)
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Rebeca", "increase")
+      {:ok, game} = GameServer.answer(@game_name, "Rebeca", :increase)
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Carlos", "increase")
+      {:ok, game} = GameServer.answer(@game_name, "Carlos", :increase)
 
       assert game.blocked?
 
-      {:error, :points_cannot_be_increased} = GameServer.answer("Felipe", "increase")
+      {:error, :points_cannot_be_increased} = GameServer.answer(@game_name, "Felipe", :increase)
     end
 
+    @tag game: @game
     test "cannot ask truco after once match points reached 12" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
+      GameServer.start_game(@game_name)
 
-      start_supervised!(child_spec)
-
-      GameServer.start_game()
-
-      {:ok, game} = GameServer.truco("Felipe")
+      {:ok, game} = GameServer.truco(@game_name, "Felipe")
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Nice", "increase")
+      {:ok, game} = GameServer.answer(@game_name, "Nice", :increase)
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Rebeca", "increase")
+      {:ok, game} = GameServer.answer(@game_name, "Rebeca", :increase)
 
       assert game.blocked?
 
-      {:ok, game} = GameServer.answer("Carlos", "increase")
+      {:ok, game} = GameServer.answer(@game_name, "Carlos", :increase)
 
       assert game.blocked?
 
-      {:ok, _game} = GameServer.answer("Felipe", "yes")
+      {:ok, _game} = GameServer.answer(@game_name, "Felipe", :yes)
 
-      {:error, :points_cannot_be_increased} = GameServer.truco("Felipe")
+      {:error, :points_cannot_be_increased} = GameServer.truco(@game_name, "Felipe")
     end
 
+    @tag game: @game
     test "players cannot answer when there is no truco" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
+      GameServer.start_game(@game_name)
 
-      start_supervised!(child_spec)
-
-      GameServer.start_game()
-
-      assert {:error, :game_unblocked} = GameServer.answer("Nice", "yes")
+      assert {:error, :game_unblocked} = GameServer.answer(@game_name, "Nice", :yes)
     end
 
+    @tag game: @game
     test "teams cannot increase points twice in row" do
-      child_spec = %{
-        id: GameServer,
-        start: {GameServer, :start_link, [nil, @game]}
-      }
+      GameServer.start_game(@game_name)
 
-      start_supervised!(child_spec)
-
-      GameServer.start_game()
-
-      {:ok, game} = GameServer.truco("Felipe")
+      {:ok, game} = GameServer.truco(@game_name, "Felipe")
 
       assert game.blocked?
 
-      {:ok, _game} = GameServer.answer("Nice", "yes")
+      {:ok, _game} = GameServer.answer(@game_name, "Nice", :yes)
 
-      {:error, :not_player_team_turn} = GameServer.truco("Felipe")
+      assert {:error, :not_player_turn} == GameServer.truco(@game_name, "Felipe")
     end
   end
 end

@@ -3,35 +3,51 @@ defmodule Engine.GameServer do
 
   alias Engine.Game
 
+  @type answers :: Game.answers()
+  @type player_error :: Game.player_error()
+
   @doc """
-  TODO: add docs.
+  Starts a game process with the given name.
+
+  It uses `via_tuple/1` to registry this process and its PID in the Registry.
   """
-  def start_link(_opts, initial_state \\ %Game{}) do
-    GenServer.start_link(__MODULE__, initial_state, name: __MODULE__)
+  @spec start_link(String.t(), Game.t()) :: {:ok, pid} | {:error, term()}
+  def start_link(name, initial_state \\ %Game{}) do
+    GenServer.start_link(__MODULE__, initial_state, name: via_tuple(name))
   end
 
   @doc """
   Join the given player name to the game.
 
-  For now only for players is allowed, so if an error will be raised in case more than that try to
-  join.
+  This game supports either 2, 4 or 6 players and name needs to be unique.
   """
-  def join_player(player_name) do
-    GenServer.call(__MODULE__, {:join_player, player_name})
+  @spec join_player(String.t(), String.t()) :: {:ok, Game.t()}
+  def join_player(game_name, player_name) when is_binary(game_name) and is_binary(player_name) do
+    game_name
+    |> via_tuple()
+    |> GenServer.call({:join_player, player_name})
   end
 
   @doc """
   Starts a game once it has enough players.
   """
-  def start_game do
-    GenServer.call(__MODULE__, :start_game)
+  @spec start_game(String.t()) :: {:ok, Game.t()}
+  def start_game(game_name) when is_binary(game_name) do
+    game_name
+    |> via_tuple()
+    |> GenServer.call(:start_game)
   end
 
   @doc """
-  TODO: add docs.
+  Play the given card position for the the given player's name.
   """
-  def play_player_card(player_name, card_position) do
-    GenServer.call(__MODULE__, {:play_player_card, player_name, card_position})
+  @spec play_player_card(String.t(), String.t(), integer()) ::
+          player_error() | {:ok, Game.t()} | {:finished, Game.t()}
+  def play_player_card(game_name, player_name, card_position)
+      when is_binary(game_name) and is_binary(player_name) and is_integer(card_position) do
+    game_name
+    |> via_tuple()
+    |> GenServer.call({:play_player_card, player_name, card_position})
   end
 
   @doc """
@@ -40,9 +56,12 @@ defmodule Engine.GameServer do
   Players can only make a truco request in their turn. The game will be blocked and players will not
   be able to do anything else other than answer this truco request.
   """
-  @spec truco(String.t()) :: {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
-  def truco(player_name) do
-    GenServer.call(__MODULE__, {:truco, player_name})
+  @spec truco(String.t(), String.t()) ::
+          {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
+  def truco(game_name, player_name) when is_binary(game_name) and is_binary(player_name) do
+    game_name
+    |> via_tuple()
+    |> GenServer.call({:truco, player_name})
   end
 
   @doc """
@@ -66,10 +85,21 @@ defmodule Engine.GameServer do
   The Game must be blocked while waiting for an answer. It means that players cannot play any card
   until a "yes" answer happens.
   """
-  @spec answer(String.t(), String.t()) ::
+  @spec answer(String.t(), String.t(), answers()) ::
           {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
-  def answer(player_name, answer) when answer in ~w(yes no increase) do
-    GenServer.call(__MODULE__, {:answer, player_name, answer})
+  def answer(game_name, player_name, answer)
+      when is_binary(game_name) and is_binary(player_name) and answer in ~w(yes no increase)a do
+    game_name
+    |> via_tuple()
+    |> GenServer.call({:answer, player_name, answer})
+  end
+
+  # Uses Registry to register the game in the state.
+  #
+  # via tuple is a way to tell Elixir that we'll use a custom module to register our processes. In
+  # this case, I'm using Registry to do this work.
+  defp via_tuple(name) do
+    {:via, Registry, {:game_server_registry, name}}
   end
 
   # --- GenServer callbacks
