@@ -1,6 +1,8 @@
 defmodule TelegramClient.Webhook do
   alias TelegramClient.Webhook.Message
 
+  import Logger
+
   @doc """
   Handle message/command received from Telegram webhook.
 
@@ -28,9 +30,18 @@ defmodule TelegramClient.Webhook do
 
         :ok
 
-      %Message{text: "/startn@ex_truco_bot", chat: chat} ->
+      %Message{text: "/start@ex_truco_bot", chat: chat} ->
         # start the previously created game as long as it has enough players.
         Nadia.send_message(chat.id, "Feature has been not implemented yet...")
+
+        :ok
+
+      %Message{} = message ->
+        Logger.info(~s"""
+        Could not process the given message
+
+        #{inspect(message)}
+        """)
 
         :ok
     end
