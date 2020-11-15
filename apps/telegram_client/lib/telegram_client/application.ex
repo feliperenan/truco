@@ -8,7 +8,7 @@ defmodule TelegramClient.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      {Plug.Cowboy, scheme: :http, plug: TelegramClient.Endpoint, options: [port: 4000]}
+      {Plug.Cowboy, scheme: :http, plug: TelegramClient.Endpoint, options: [port: port()]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -16,4 +16,6 @@ defmodule TelegramClient.Application do
     opts = [strategy: :one_for_one, name: TelegramClient.Supervisor]
     Supervisor.start_link(children, opts)
   end
+
+  def port, do: Application.get_env(:telegram_client, :port, 4000)
 end

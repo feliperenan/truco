@@ -16,22 +16,17 @@ defmodule TelegramClient.Webhook do
   def handle_message(message_payload) do
     case Message.new(message_payload) do
       %Message{text: "/new@ex_truco_bot", chat: chat} ->
-        # TODO:
-        # * start a new game for this group and send this message to the bot.
-        # * respond an error message in case it is not a chat group.
-        Nadia.send_message(chat.id, "The game has been created and it is ready for receive players.")
-
-        :ok
+        new_game(chat)
 
       %Message{text: "/join@ex_truco_bot", chat: chat} ->
         # join the message sender into the previously created game.
-        Nadia.send_message(chat.id, "Feature has been not implemented yet...")
+        Nadia.send_message(chat.id, "Feature has not been implemented yet...")
 
         :ok
 
       %Message{text: "/start@ex_truco_bot", chat: chat} ->
         # start the previously created game as long as it has enough players.
-        Nadia.send_message(chat.id, "Feature has been not implemented yet...")
+        Nadia.send_message(chat.id, "Feature has not been implemented yet...")
 
         :ok
 
@@ -44,5 +39,32 @@ defmodule TelegramClient.Webhook do
 
         :ok
     end
+  end
+
+  defp new_game(%{type: "private"} = chat) do
+    message = ~s"""
+    I can't start a game from a private conversation.
+
+    In order to play the game, you need to create a group with people you want to play."
+    """
+
+    Nadia.send_message(chat.id, message)
+  end
+
+  defp new_game(%{type: "group"} = chat) do
+    game_name = "#{chat.title}-#{chat.id}"
+
+    case Engine.new_game(game_name) do
+      {:ok, _game_name} ->
+        Nadia.send_message(chat.id, "The game has been created and it is ready for receive players.")
+
+      {:error, _error} ->
+        Nadia.send_message(
+          chat.id,
+          "There is already a game created for this group. Try /join to join the game or /start to start the game."
+        )
+    end
+
+    :ok
   end
 end
