@@ -1,8 +1,8 @@
-defmodule TelegramClient.Integrations.WebhookTest do
+defmodule TelegramBot.Integrations.WebhookTest do
   use ExUnit.Case, async: true
   use Plug.Test
 
-  @opts TelegramClient.Endpoint.init([])
+  @opts TelegramBot.Endpoint.init([])
 
   setup do
     bypass = Bypass.open()
@@ -43,7 +43,7 @@ defmodule TelegramClient.Integrations.WebhookTest do
       end)
 
       conn = conn(:post, "/telegram/<token>", @new_game_payload)
-      conn = TelegramClient.Endpoint.call(conn, @opts)
+      conn = TelegramBot.Endpoint.call(conn, @opts)
 
       assert conn.state == :sent
       assert conn.status == 200

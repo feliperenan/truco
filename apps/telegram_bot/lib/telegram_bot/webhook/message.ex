@@ -1,4 +1,4 @@
-defmodule TelegramClient.Webhook.Message do
+defmodule TelegramBot.Webhook.Message do
   @moduledoc """
   Represents a telegram message which is parsed from the following payload:
 

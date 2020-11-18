@@ -1,4 +1,4 @@
-defmodule TelegramClient.Endpoint do
+defmodule TelegramBot.Endpoint do
   use Plug.Router
 
   require Logger
@@ -47,7 +47,7 @@ defmodule TelegramClient.Endpoint do
       #{inspect(conn.body_params)}
     """)
 
-    :ok = TelegramClient.Webhook.handle_message(conn.body_params)
+    :ok = TelegramBot.Webhook.handle_message(conn.body_params)
 
     send_resp(conn, 200, "ok")
   end

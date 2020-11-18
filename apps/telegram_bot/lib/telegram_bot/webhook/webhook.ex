@@ -1,5 +1,5 @@
-defmodule TelegramClient.Webhook do
-  alias TelegramClient.Webhook.Message
+defmodule TelegramBot.Webhook do
+  alias TelegramBot.Webhook.Message
 
   require Logger
 

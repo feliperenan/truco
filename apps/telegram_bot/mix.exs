@@ -1,9 +1,9 @@
-defmodule TelegramClient.MixProject do
+defmodule TelegramBot.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :telegram_client,
+      app: :telegram_bot,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -19,7 +19,7 @@ defmodule TelegramClient.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {TelegramClient.Application, []}
+      mod: {TelegramBot.Application, []}
     ]
   end
 

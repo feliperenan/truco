@@ -1,7 +1,7 @@
-defmodule TelegramClient.Webhook.MessageTest do
+defmodule TelegramBot.Webhook.MessageTest do
   use ExUnit.Case
 
-  alias TelegramClient.Webhook.Message
+  alias TelegramBot.Webhook.Message
 
   describe "new/1" do
     test "build a message struct from the webhook payload" do
