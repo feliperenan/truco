@@ -44,7 +44,7 @@ defmodule TelegramBot.Webhook.MessageTest do
                  last_name: "Renan"
                },
                id: nil,
-               text: "/start@ex_truco_bot"
+               text: "/start"
              } == Message.new(payload)
     end
   end

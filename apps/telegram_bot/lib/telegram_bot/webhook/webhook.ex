@@ -15,7 +15,7 @@ defmodule TelegramBot.Webhook do
   @spec handle_message(map()) :: :ok
   def handle_message(message_payload) do
     case Message.new(message_payload) do
-      %Message{text: "/new@ex_truco_bot", chat: chat} ->
+      %Message{text: "/new", chat: chat} ->
         new_game(chat)
 
       %Message{text: "/join@ex_truco_bot", chat: chat} ->
@@ -49,6 +49,8 @@ defmodule TelegramBot.Webhook do
     """
 
     Nadia.send_message(chat.id, message)
+
+    :ok
   end
 
   defp new_game(%{type: "group"} = chat) do
