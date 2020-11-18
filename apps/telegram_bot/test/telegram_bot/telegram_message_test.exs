@@ -1,7 +1,7 @@
-defmodule TelegramBot.Webhook.MessageTest do
+defmodule TelegramBot.TelegramMessageTest do
   use ExUnit.Case
 
-  alias TelegramBot.Webhook.Message
+  alias TelegramBot.TelegramMessage
 
   describe "new/1" do
     test "build a message struct from the webhook payload" do
@@ -28,7 +28,7 @@ defmodule TelegramBot.Webhook.MessageTest do
         "update_id" => 863_667_915
       }
 
-      assert %Message{
+      assert %TelegramMessage{
                chat: %{
                  all_members_are_administrators: true,
                  id: -419_752_573,
@@ -44,8 +44,8 @@ defmodule TelegramBot.Webhook.MessageTest do
                  last_name: "Renan"
                },
                id: nil,
-               text: "/start@ex_truco_bot"
-             } == Message.new(payload)
+               text: "/start"
+             } == TelegramMessage.new(payload)
     end
   end
 end

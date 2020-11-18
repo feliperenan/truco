@@ -7,9 +7,12 @@ defmodule TelegramBot.Application do
 
   def start(_type, _args) do
     # List all child processes to be supervised
-    children = [
-      {Plug.Cowboy, scheme: :http, plug: TelegramBot.Endpoint, options: [port: port()]}
-    ]
+    children =
+      [
+        {Plug.Cowboy, scheme: :http, plug: TelegramBot.Endpoint, options: [port: port()]},
+        start_telegram_client_mock_server(Mix.env())
+      ]
+      |> Enum.reject(&is_nil/1)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -18,4 +21,10 @@ defmodule TelegramBot.Application do
   end
 
   def port, do: Application.get_env(:telegram_bot, :port, 4000)
+
+  defp start_telegram_client_mock_server(:test) do
+    {Plug.Cowboy, scheme: :http, plug: TelegramBot.TelegramClient.MockServer, options: [port: 8081]}
+  end
+
+  defp start_telegram_client_mock_server(_), do: nil
 end

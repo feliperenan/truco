@@ -1,4 +1,4 @@
-defmodule TelegramBot.Webhook.Message do
+defmodule TelegramBot.TelegramMessage do
   @moduledoc """
   Represents a telegram message which is parsed from the following payload:
 
@@ -36,7 +36,10 @@ defmodule TelegramBot.Webhook.Message do
   """
   @spec new(map()) :: t()
   def new(%{"message" => message}) do
-    message_payload = transform_to_atom_keys(message)
+    message_payload =
+      message
+      |> transform_to_atom_keys()
+      |> remove_bot_suffix_from_text()
 
     struct(__MODULE__, message_payload)
   end
@@ -46,4 +49,7 @@ defmodule TelegramBot.Webhook.Message do
   end
 
   defp transform_to_atom_keys(value), do: value
+
+  defp remove_bot_suffix_from_text(%{text: text} = message),
+    do: %{message | text: String.replace(text, "@ex_truco_bot", "")}
 end
