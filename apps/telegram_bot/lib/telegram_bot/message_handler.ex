@@ -1,8 +1,6 @@
 defmodule TelegramBot.MessageHandler do
   alias TelegramBot.TelegramMessage
 
-  require Logger
-
   @type chat_response :: %{to: integer(), text: String.t()}
 
   @spec process_message(TelegramMessage.t()) :: chat_response()
@@ -41,13 +39,6 @@ defmodule TelegramBot.MessageHandler do
   def process_message(%TelegramMessage{text: "/join", chat: %{type: "group"} = chat}),
     do: %{to: chat.id, text: "Feature has not been implemented yet..."}
 
-  def process_message(%TelegramMessage{chat: chat} = message) do
-    Logger.info(~s"""
-    Could not process the given message:
-
-    #{inspect(message)}
-    """)
-
-    %{to: chat.id, text: "Sorry, I didn't understand this message :(."}
-  end
+  def process_message(%TelegramMessage{chat: chat}),
+    do: %{to: chat.id, text: "Sorry, I didn't understand this message :(."}
 end
