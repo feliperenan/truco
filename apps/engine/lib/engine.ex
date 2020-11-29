@@ -29,8 +29,18 @@ defmodule Engine do
     end
   end
 
-  @spec join_player(game_id(), player_name()) :: {:ok, Game.t()}
-  defdelegate join_player(game_id, player), to: GameServer
+  @spec join_player(game_id(), player_name()) ::
+          {:ok, Game.t()}
+          | {:error, :game_not_found}
+          | {:error, :player_already_joined}
+          | {:error, :players_limit_reached}
+  def join_player(game_id, player) do
+    if GameSupervisor.game_exists?(game_id) do
+      GameServer.join_player(game_id, player)
+    else
+      {:error, :game_not_found}
+    end
+  end
 
   @spec start_game(game_id()) :: {:ok, Engine.Game.t()} | {:error, String.t()}
   defdelegate start_game(game_id), to: GameServer

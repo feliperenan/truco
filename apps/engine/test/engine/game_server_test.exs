@@ -42,7 +42,7 @@ defmodule Engine.GameServerTest do
                winner: nil
              }
 
-      assert {:error, "This game has already 4 players."} == GameServer.join_player(@game_name, "Renan")
+      assert {:error, :players_limit_reached} == GameServer.join_player(@game_name, "Renan")
     end
   end
 

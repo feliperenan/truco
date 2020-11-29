@@ -11,24 +11,31 @@ defmodule Engine.Game do
 
   @type t :: %__MODULE__{}
   @type answers :: :yes | :no | :increase
-
   @type player_error :: {:error, :player_not_found} | {:error, :not_player_turn}
 
   require Integer
 
+  @players_limit 4
+
+  def add_player(%__MODULE__{players: players}, _player_name) when length(players) >= @players_limit,
+    do: {:error, :players_limit_reached}
+
   @doc """
-  TODO: add docs.
+  Adds the given player name to the game.
   """
-  def add_player(%__MODULE__{players: players} = game, player_name) when length(players) < 4 do
-    number = length(players) + 1
-    team_id = if Integer.is_odd(number), do: 1, else: 2
-    player = Player.new(player_name, number, team_id)
+  @spec add_player(t(), String.t()) :: {:ok, t()} | {:error, :player_already_joined} | {:error, :players_limit_reached}
+  def add_player(%__MODULE__{players: players} = game, player_name) do
+    case Enum.find(players, &(&1.name == player_name)) do
+      nil ->
+        number = length(players) + 1
+        team_id = if Integer.is_odd(number), do: 1, else: 2
+        player = Player.new(player_name, number, team_id)
 
-    {:ok, Map.update(game, :players, player, &(&1 ++ [player]))}
-  end
+        {:ok, Map.update(game, :players, player, &(&1 ++ [player]))}
 
-  def add_player(%__MODULE__{players: players}, _player_name) when length(players) == 4 do
-    {:error, "This game has already 4 players."}
+      %Player{} ->
+        {:error, :player_already_joined}
+    end
   end
 
   @doc """

@@ -1,4 +1,12 @@
 defmodule TelegramBot.TelegramMessage do
+  defmodule Chat do
+    defstruct [:all_members_are_administrators, :id, :title, :type]
+  end
+
+  defmodule From do
+    defstruct [:first_name, :id, :is_bot, :language_code, :last_name]
+  end
+
   @moduledoc """
   Represents a telegram message which is parsed from the following payload:
 

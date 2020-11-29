@@ -58,7 +58,10 @@ defmodule TelegramBot.WebhookPayloadMock do
 
   """
   def message(opts \\ []) do
-    %{text: text, type: type} = Enum.into(opts, %{})
+    %{text: text, type: type} =
+      opts
+      |> Keyword.merge(text: "message", type: :group)
+      |> Enum.into(%{})
 
     build(type, text)
   end

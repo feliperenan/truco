@@ -21,7 +21,8 @@ defmodule Engine.GameServer do
 
   This game supports either 2, 4 or 6 players and name needs to be unique.
   """
-  @spec join_player(String.t(), String.t()) :: {:ok, Game.t()}
+  @spec join_player(String.t(), String.t()) ::
+          {:ok, Game.t()} | {:error, :player_already_joined} | {:error, :players_limit_reached}
   def join_player(game_name, player_name) when is_binary(game_name) and is_binary(player_name) do
     game_name
     |> via_tuple()
