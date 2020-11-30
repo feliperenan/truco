@@ -9,7 +9,7 @@ defmodule TelegramBot.TelegramMessageTest do
         "message" => %{
           "chat" => %{
             "all_members_are_administrators" => true,
-            "id" => -419_752_573,
+            "id" => 419_752_573,
             "title" => "truco-test",
             "type" => "group"
           },
@@ -31,7 +31,7 @@ defmodule TelegramBot.TelegramMessageTest do
       assert %TelegramMessage{
                chat: %{
                  all_members_are_administrators: true,
-                 id: -419_752_573,
+                 id: 419_752_573,
                  title: "truco-test",
                  type: "group"
                },
@@ -45,6 +45,49 @@ defmodule TelegramBot.TelegramMessageTest do
                },
                id: nil,
                text: "/start"
+             } == TelegramMessage.new(payload)
+    end
+
+    test "message without text" do
+      payload = %{
+        "message" => %{
+          "chat" => %{
+            "all_members_are_administrators" => true,
+            "id" => 111_111_111,
+            "title" => "truco-test",
+            "type" => "group"
+          },
+          "date" => 1_606_743_674,
+          "from" => %{
+            "first_name" => "Felipe",
+            "id" => 222_222_222,
+            "is_bot" => false,
+            "language_code" => "en",
+            "last_name" => "Renan"
+          },
+          "group_chat_created" => true,
+          "message_id" => 92
+        },
+        "update_id" => 863_667_959
+      }
+
+      assert %TelegramMessage{
+               chat: %{
+                 all_members_are_administrators: true,
+                 id: 111_111_111,
+                 title: "truco-test",
+                 type: "group"
+               },
+               date: 1_606_743_674,
+               from: %{
+                 first_name: "Felipe",
+                 id: 222_222_222,
+                 is_bot: false,
+                 language_code: "en",
+                 last_name: "Renan"
+               },
+               id: nil,
+               text: nil
              } == TelegramMessage.new(payload)
     end
   end

@@ -60,4 +60,6 @@ defmodule TelegramBot.TelegramMessage do
 
   defp remove_bot_suffix_from_text(%{text: text} = message),
     do: %{message | text: String.replace(text, "@ex_truco_bot", "")}
+
+  defp remove_bot_suffix_from_text(message), do: message
 end
