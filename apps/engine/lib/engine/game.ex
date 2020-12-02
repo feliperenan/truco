@@ -1,6 +1,7 @@
 defmodule Engine.Game do
   defstruct players: [],
             matches: [],
+            started?: false,
             finished?: false,
             score: %{},
             winner: nil,
@@ -41,7 +42,7 @@ defmodule Engine.Game do
   @doc """
   TODO: add docs.
   """
-  def ready?(%__MODULE__{players: players}), do: length(players) == 4
+  def ready?(%__MODULE__{players: players}), do: length(players) in [2, 4, 6]
 
   @doc """
   TODO: add docs.
@@ -50,7 +51,7 @@ defmodule Engine.Game do
     match = Match.new(players)
     score = build_initial_score(players)
 
-    %{game | matches: game.matches ++ [match], score: score}
+    %{game | matches: game.matches ++ [match], score: score, started?: true}
   end
 
   defp build_initial_score(players) do

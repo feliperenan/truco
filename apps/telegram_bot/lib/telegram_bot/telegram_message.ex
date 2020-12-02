@@ -4,7 +4,7 @@ defmodule TelegramBot.TelegramMessage do
   end
 
   defmodule From do
-    defstruct [:first_name, :id, :is_bot, :language_code, :last_name]
+    defstruct [:first_name, :id, :is_bot, :language_code, :last_name, :username]
   end
 
   @moduledoc """
@@ -35,7 +35,7 @@ defmodule TelegramBot.TelegramMessage do
 
   This message is sent by Telegram API through webhook.
   """
-  defstruct [:chat, :date, :from, :id, :text]
+  defstruct [:chat, :date, :from, :message_id, :text]
 
   @type t() :: %__MODULE__{}
 

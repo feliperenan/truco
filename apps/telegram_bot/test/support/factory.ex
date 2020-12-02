@@ -15,6 +15,7 @@ defmodule TelegramBot.Factory do
       first_name: "Felipe",
       id: 111_111_111,
       is_bot: false,
+      username: "feliperenan",
       language_code: "en",
       last_name: "Renan"
     }
@@ -25,7 +26,7 @@ defmodule TelegramBot.Factory do
       chat: build(:telegram_message_chat),
       date: 1_605_212_571,
       from: build(:telegram_message_from),
-      id: nil,
+      message_id: nil,
       text: "/start"
     }
   end

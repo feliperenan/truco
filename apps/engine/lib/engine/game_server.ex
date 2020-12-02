@@ -32,7 +32,7 @@ defmodule Engine.GameServer do
   @doc """
   Starts a game once it has enough players.
   """
-  @spec start_game(String.t()) :: {:ok, Game.t()}
+  @spec start_game(String.t()) :: {:ok, Game.t()} | {:error, :game_already_started} | {:error, String.t()}
   def start_game(game_name) when is_binary(game_name) do
     game_name
     |> via_tuple()
@@ -95,6 +95,13 @@ defmodule Engine.GameServer do
     |> GenServer.call({:answer, player_name, answer})
   end
 
+  @spec get(String.t()) :: Game.t() | nil
+  def get(game_name) when is_binary(game_name) do
+    game_name
+    |> via_tuple()
+    |> GenServer.call(:get)
+  end
+
   # Uses Registry to register the game in the state.
   #
   # via tuple is a way to tell Elixir that we'll use a custom module to register our processes. In
@@ -120,7 +127,10 @@ defmodule Engine.GameServer do
   end
 
   @impl true
-  def handle_call(:start_game, _from, game) do
+  def handle_call(:start_game, _from, %Game{started?: true} = game), do: {:reply, {:error, :game_already_started}, game}
+
+  @impl true
+  def handle_call(:start_game, _from, %Game{started?: false} = game) do
     if Game.ready?(game) do
       game = Game.start_match(game)
 
@@ -178,4 +188,7 @@ defmodule Engine.GameServer do
   @impl true
   def handle_call({:answer, _player_name, _answer}, _, game),
     do: {:reply, {:error, :game_unblocked}, game}
+
+  @impl true
+  def handle_call(:get, _, game), do: {:reply, game, game}
 end

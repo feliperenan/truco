@@ -42,8 +42,18 @@ defmodule Engine do
     end
   end
 
-  @spec start_game(game_id()) :: {:ok, Engine.Game.t()} | {:error, String.t()}
-  defdelegate start_game(game_id), to: GameServer
+  @spec start_game(game_id()) ::
+          {:ok, Engine.Game.t()}
+          | {:error, :game_already_started}
+          | {:error, :game_not_found}
+          | {:error, String.t()}
+  def start_game(game_id) do
+    if GameSupervisor.game_exists?(game_id) do
+      GameServer.start_game(game_id)
+    else
+      {:error, :game_not_found}
+    end
+  end
 
   @spec play_player_card(game_id(), player_name(), integer()) :: {:ok, Game.t()}
   defdelegate play_player_card(game, player_name, card_position), to: GameServer
@@ -55,4 +65,26 @@ defmodule Engine do
   @spec answer(game_id(), player_name(), answers()) ::
           {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
   defdelegate answer(game, player_name, answer), to: GameServer
+
+  @doc """
+  Returns a player hand given the game_id and player_name.
+  """
+  @spec get_player_hand(game_id(), player_name()) ::
+          {:ok, PlayerHand.t()} | {:error, :game_not_found} | {:error, :player_not_found}
+  def get_player_hand(game_id, player_name) do
+    if GameSupervisor.game_exists?(game_id) do
+      game = GameServer.get(game_id)
+      current_match = List.last(game.matches)
+
+      case Enum.find(current_match.players_hands, &(&1.player.name == player_name)) do
+        nil ->
+          {:error, :player_not_found}
+
+        %Engine.PlayerHand{} = player_hand ->
+          {:ok, player_hand}
+      end
+    else
+      {:error, :game_not_found}
+    end
+  end
 end

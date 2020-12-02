@@ -43,7 +43,7 @@ defmodule TelegramBot.TelegramMessageTest do
                  language_code: "en",
                  last_name: "Renan"
                },
-               id: nil,
+               message_id: 16,
                text: "/start"
              } == TelegramMessage.new(payload)
     end
@@ -86,7 +86,7 @@ defmodule TelegramBot.TelegramMessageTest do
                  language_code: "en",
                  last_name: "Renan"
                },
-               id: nil,
+               message_id: 92,
                text: nil
              } == TelegramMessage.new(payload)
     end
