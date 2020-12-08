@@ -3,11 +3,18 @@ defmodule TelegramBot.MessageHandler do
 
   @type chat_response :: %{to: integer(), text: String.t()} | list(map())
 
-  @emoji_unicode_map %{
+  @suit_to_emoji %{
     spades: "♠️",
     hearts: "❤️",
     diamonds: "♦️",
     clubs: "♣️"
+  }
+
+  @emoji_to_suit %{
+    "♠️" => :spades,
+    "❤️" => :hearts,
+    "♦️" => :diamonds,
+    "♣️" => :clubs
   }
 
   @spec process_message(TelegramMessage.t()) :: chat_response()
@@ -68,7 +75,7 @@ defmodule TelegramBot.MessageHandler do
       {:ok, %Engine.Game{} = game} ->
         current_match = List.last(game.matches)
         player_turn = Enum.find(game.players, &(&1.id == current_match.next_player_id))
-        suit_emoji = @emoji_unicode_map[current_match.card_faced_up.suit]
+        suit_emoji = @suit_to_emoji[current_match.card_faced_up.suit]
 
         text = ~s"""
         The game has been started
@@ -101,7 +108,7 @@ defmodule TelegramBot.MessageHandler do
       {:ok, player_hand} ->
         keyboard_buttons =
           for card <- player_hand.cards do
-            suit = @emoji_unicode_map[card.suit]
+            suit = @suit_to_emoji[card.suit]
 
             %Nadia.Model.KeyboardButton{text: "#{card.symbol} #{suit}"}
           end
@@ -124,6 +131,103 @@ defmodule TelegramBot.MessageHandler do
     end
   end
 
-  def process_message(%TelegramMessage{chat: chat}),
-    do: %{to: chat.id, text: "Sorry, I didn't understand this message :(."}
+  def process_message(%TelegramMessage{chat: %{type: "group"} = chat, from: from, text: text}) do
+    game_name = "#{chat.title}-#{chat.id}"
+
+    case parse_message_to_card(text) do
+      {symbol, suit} ->
+        text = find_player_card_and_play(game_name, from.username, symbol, suit)
+
+        %{to: chat.id, text: text}
+
+      _random_text ->
+        %{to: chat.id, text: "Sorry, I didn't understand this message :(."}
+    end
+  end
+
+  defp parse_message_to_card(text) do
+    [symbol, emoji_suit] = String.split(text)
+    suit = Map.get(@emoji_to_suit, emoji_suit)
+
+    if is_nil(suit), do: text, else: {symbol, suit}
+  end
+
+  defp find_player_card_and_play(game_name, username, symbol, suit) do
+    case Engine.get_player_hand(game_name, username) do
+      {:ok, player_hand} ->
+        card_position = Enum.find_index(player_hand.cards, &(&1.suit == suit and &1.symbol == symbol))
+        play_player_card(game_name, username, card_position)
+
+      {:error, :player_not_found} ->
+        "Sorry, but it seems you are not in this game"
+
+      {:error, :game_not_found} ->
+        "There is no game started in this group"
+    end
+  end
+
+  defp play_player_card(game_name, username, card_position) do
+    case Engine.play_player_card(game_name, username, card_position) do
+      {:ok, game} ->
+        current_match = List.last(game.matches)
+        player_turn = Enum.find(game.players, &(&1.id == current_match.next_player_id))
+
+        if new_match?(current_match) do
+          new_match_text(player_turn, current_match, game)
+        else
+          new_round_text(player_turn, current_match)
+        end
+
+      {:finished, _game} ->
+        "I can't tell who won the game yet..."
+
+      {:error, :not_player_turn} ->
+        "It is not your turn. Wait for your turn and then play your card."
+    end
+  end
+
+  defp new_match?(match) do
+    case match.rounds do
+      [%Engine.Round{finished?: false, played_cards: []}] ->
+        true
+
+      _rounds ->
+        false
+    end
+  end
+
+  def new_match_text(player_turn, current_match, game) do
+    previous_match = Enum.at(game.matches, length(game.matches) - 2)
+    suit_emoji = @suit_to_emoji[current_match.card_faced_up.suit]
+
+    winners =
+      for player <- game.players, player.team_id == previous_match.team_winner do
+        "@" <> player.name
+      end
+      |> Enum.join(", ")
+
+    ~s"""
+    This match has been finished and won by: #{winners}
+
+    Starting a new round.
+
+    The card faced up is: #{current_match.card_faced_up.symbol} #{suit_emoji}
+    The player who starts is: @#{player_turn.name}
+
+    To check your cards, send /my_cards
+    """
+  end
+
+  defp new_round_text(player_turn, current_match) do
+    case List.last(current_match.rounds) do
+      %Engine.Round{finished?: true, winner: :tied} ->
+        "The game is tied. Now is @#{player_turn.name} turn. Send /my_cards and play your card."
+
+      %Engine.Round{finished?: true} ->
+        "@#{player_turn.name} won this turn. Send /my_cards and play your card."
+
+      %Engine.Round{finished?: false} ->
+        "Now is @#{player_turn.name} turn. Send /my_cards and play your card."
+    end
+  end
 end

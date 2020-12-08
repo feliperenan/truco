@@ -47,7 +47,9 @@ defmodule TelegramBot.Endpoint do
       #{inspect(conn.body_params)}
     """)
 
-    :ok = TelegramBot.process_message(conn.body_params)
+    Task.async(fn ->
+      :ok = TelegramBot.process_message(conn.body_params)
+    end)
 
     send_resp(conn, 200, "ok")
   end

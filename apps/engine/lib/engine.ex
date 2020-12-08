@@ -55,8 +55,17 @@ defmodule Engine do
     end
   end
 
-  @spec play_player_card(game_id(), player_name(), integer()) :: {:ok, Game.t()}
-  defdelegate play_player_card(game, player_name, card_position), to: GameServer
+  @spec play_player_card(game_id(), player_name(), integer()) ::
+          {:ok, Game.t()}
+          | {:finished, Game.t()}
+          | Game.player_error()
+  def play_player_card(game_id, player_name, card_position) do
+    if GameSupervisor.game_exists?(game_id) do
+      GameServer.play_player_card(game_id, player_name, card_position)
+    else
+      {:error, :game_not_found}
+    end
+  end
 
   @spec truco(game_id(), player_name()) ::
           {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
