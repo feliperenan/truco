@@ -26,28 +26,6 @@ defmodule TelegramBot.WebhookPayloadMock do
     "update_id" => 333_333_333
   }
 
-  @private_message_example %{
-    "message" => %{
-      "chat" => %{
-        "first_name" => "Felipe",
-        "id" => 444_444_444,
-        "last_name" => "Renan",
-        "type" => "private"
-      },
-      "date" => 1_605_733_162,
-      "from" => %{
-        "first_name" => "Felipe",
-        "id" => 555_555_555,
-        "is_bot" => false,
-        "language_code" => "en",
-        "last_name" => "Renan"
-      },
-      "message_id" => 57,
-      "text" => "message"
-    },
-    "update_id" => 999_999_999
-  }
-
   @doc """
   Build an message example sent by Telegram webhook.
 
@@ -67,6 +45,24 @@ defmodule TelegramBot.WebhookPayloadMock do
   end
 
   defp build(:group, text), do: put_in(@group_message_example, ["message", "text"], text)
-  defp build(:private, text), do: put_in(@private_message_example, ["message", "text"], text)
   defp build(type, _message), do: raise("There is no payload for #{type}")
+
+  @inline_query_payload %{
+      "inline_query" => %{
+        "from" => %{
+          "first_name" => "Felipe",
+          "id" => 111_111_111,
+          "is_bot" => false,
+          "language_code" => "en",
+          "last_name" => "Renan",
+          "username" => "feeliperenan"
+        },
+        "id" => "1231038104813901",
+        "offset" => "",
+        "query" => ""
+      },
+      "update_id" => 863_668_430
+    }
+
+  def inline_query, do: @inline_query_payload
 end

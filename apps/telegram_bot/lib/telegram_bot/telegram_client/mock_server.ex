@@ -8,4 +8,8 @@ defmodule TelegramBot.TelegramClient.MockServer do
   post "/token/sendMessage" do
     Plug.Conn.send_resp(conn, 200, Jason.encode!(conn.params))
   end
+
+  post "/token/answerInlineQuery" do
+    Plug.Conn.send_resp(conn, 200, Jason.encode!(conn.params))
+  end
 end
