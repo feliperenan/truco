@@ -1,8 +1,4 @@
-defmodule TelegramBot.TelegramMessage do
-  defmodule Chat do
-    defstruct [:all_members_are_administrators, :id, :title, :type]
-  end
-
+defmodule TelegramBot.Message do
   @moduledoc """
   Represents a telegram message which is parsed from the following payload:
 
@@ -32,6 +28,10 @@ defmodule TelegramBot.TelegramMessage do
   This message is sent by Telegram API through webhook.
   """
   defstruct [:chat, :date, :from, :message_id, :text]
+
+  defmodule Chat do
+    defstruct [:all_members_are_administrators, :id, :title, :type]
+  end
 
   @type t() :: %__MODULE__{}
 

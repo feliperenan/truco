@@ -1,8 +1,8 @@
 defmodule TelegramBot.Factory do
-  alias TelegramBot.{TelegramMessage, InlineQuery}
+  alias TelegramBot.{Message, InlineQuery}
 
   def build(:telegram_message_chat) do
-    %TelegramMessage.Chat{
+    %Message.Chat{
       all_members_are_administrators: true,
       id: 419_752_573,
       title: "truco-test",
@@ -22,7 +22,7 @@ defmodule TelegramBot.Factory do
   end
 
   def build(:telegram_message) do
-    %TelegramMessage{
+    %Message{
       chat: build(:telegram_message_chat),
       date: 1_605_212_571,
       from: build(:user),

@@ -1,7 +1,7 @@
 defmodule TelegramBot do
   alias TelegramBot.InlineQuery
   alias TelegramBot.MessageHandler
-  alias TelegramBot.TelegramMessage
+  alias TelegramBot.Message
 
   require Logger
 
@@ -61,7 +61,7 @@ defmodule TelegramBot do
   def process_message(%{"message" => _message} = message_payload) do
     reply =
       message_payload
-      |> TelegramMessage.new()
+      |> Message.new()
       |> MessageHandler.process_message()
 
     reply_markup = Map.get(reply, :reply_markup, %{})

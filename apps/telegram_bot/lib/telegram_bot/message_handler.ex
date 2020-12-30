@@ -1,5 +1,5 @@
 defmodule TelegramBot.MessageHandler do
-  alias TelegramBot.TelegramMessage
+  alias TelegramBot.Message
   alias TelegramBot.GameManager
 
   @type reply :: %{to: integer(), text: String.t()} | list(map())
@@ -11,8 +11,8 @@ defmodule TelegramBot.MessageHandler do
     clubs: "♣️"
   }
 
-  @spec process_message(TelegramMessage.t()) :: reply()
-  def process_message(%TelegramMessage{text: "/new", chat: %{type: "group"} = chat}) do
+  @spec process_message(Message.t()) :: reply()
+  def process_message(%Message{text: "/new", chat: %{type: "group"} = chat}) do
     game_id = GameManager.new_game(chat)
 
     text =
@@ -31,7 +31,7 @@ defmodule TelegramBot.MessageHandler do
     %{to: chat.id, text: text}
   end
 
-  def process_message(%TelegramMessage{text: "/join", chat: %{type: "group"} = chat, from: from}) do
+  def process_message(%Message{text: "/join", chat: %{type: "group"} = chat, from: from}) do
     case GameManager.add_user(chat, from.id) do
       {:ok, game_id} ->
         text =
@@ -56,7 +56,7 @@ defmodule TelegramBot.MessageHandler do
     end
   end
 
-  def process_message(%TelegramMessage{text: "/start", chat: %{type: "group"} = chat, from: from}) do
+  def process_message(%Message{text: "/start", chat: %{type: "group"} = chat, from: from}) do
     with {:ok, game_id} <- GameManager.get_game_id(user_id: from.id),
          {:ok, %Engine.Game{} = game} <- Engine.start_game(game_id) do
       current_match = List.last(game.matches)
@@ -94,7 +94,7 @@ defmodule TelegramBot.MessageHandler do
     end
   end
 
-  def process_message(%TelegramMessage{chat: %{type: "group"} = chat}) do
+  def process_message(%Message{chat: %{type: "group"} = chat}) do
     %{to: chat.id, text: "Sorry, I didn't understand this message :(."}
   end
 end

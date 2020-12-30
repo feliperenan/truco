@@ -5,7 +5,6 @@ defmodule TelegramBot.InlineQuery do
   defstruct [:update_id, :from, :id, :offset, :query]
 
   alias TelegramBot.GameManager
-  alias TelegramBot.User
 
   @type t :: %__MODULE__{id: String.t(), from: map(), update_id: integer(), query: String.t(), offset: String.t()}
   @type inline_query_reply :: %{inline_query_id: integer(), results: list()}

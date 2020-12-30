@@ -1,7 +1,7 @@
-defmodule TelegramBot.TelegramMessageTest do
+defmodule TelegramBot.MessageTest do
   use ExUnit.Case
 
-  alias TelegramBot.TelegramMessage
+  alias TelegramBot.Message
   alias TelegramBot.User
 
   describe "new/1" do
@@ -29,7 +29,7 @@ defmodule TelegramBot.TelegramMessageTest do
         "update_id" => 863_667_915
       }
 
-      assert %TelegramMessage{
+      assert %Message{
                chat: %{
                  all_members_are_administrators: true,
                  id: 419_752_573,
@@ -46,7 +46,7 @@ defmodule TelegramBot.TelegramMessageTest do
                },
                message_id: 16,
                text: "/start"
-             } == TelegramMessage.new(payload)
+             } == Message.new(payload)
     end
 
     test "message without text" do
@@ -72,7 +72,7 @@ defmodule TelegramBot.TelegramMessageTest do
         "update_id" => 863_667_959
       }
 
-      assert %TelegramMessage{
+      assert %Message{
                chat: %{
                  all_members_are_administrators: true,
                  id: 111_111_111,
@@ -89,7 +89,7 @@ defmodule TelegramBot.TelegramMessageTest do
                },
                message_id: 92,
                text: nil
-             } == TelegramMessage.new(payload)
+             } == Message.new(payload)
     end
   end
 end
