@@ -47,7 +47,7 @@ defmodule TelegramBot.Endpoint do
       #{inspect(conn.body_params)}
     """)
 
-    TelegramBot.process_message(conn.body_params)
+    TelegramBot.build_reply(conn.body_params)
 
     send_resp(conn, 200, "ok")
   end

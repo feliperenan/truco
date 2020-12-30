@@ -4,8 +4,7 @@ defmodule TelegramBot.InlineQuery do
   """
   defstruct [:update_id, :from, :id, :offset, :query]
 
-  alias TelegramBot.GameManager
-  alias TelegramBot.User
+  alias TelegramBot.{GameManager, User}
 
   @type t :: %__MODULE__{id: String.t(), from: map(), update_id: integer(), query: String.t(), offset: String.t()}
   @type inline_query_reply :: %{inline_query_id: integer(), results: list()}
@@ -15,24 +14,24 @@ defmodule TelegramBot.InlineQuery do
 
   ### Examples
 
-      iex> inline_query_payload = %{
-      ...>   "inline_query" => %{
-      ...>     "from" => %{
-      ...>       "first_name" => "Felipe",
-      ...>       "id" => 111_111_111,
-      ...>       "is_bot" => false,
-      ...>       "language_code" => "en",
-      ...>       "last_name" => "Renan",
-      ...>       "username" => "feliperenan"
-      ...>     },
-      ...>     "id" => "3975448342490274657",
-      ...>     "offset" => "",
-      ...>     "query" => ""
-      ...>   },
-      ...>   "update_id" => 863_668_430
-      ...> }
-      iex> InlineQuery.new(inline_query_payload)
-      %InlineQuery{...}
+      inline_query_payload = %{
+        "inline_query" => %{
+          "from" => %{
+            "first_name" => "Felipe",
+            "id" => 111_111_111,
+            "is_bot" => false,
+            "language_code" => "en",
+            "last_name" => "Renan",
+            "username" => "feliperenan"
+          },
+          "id" => "3975448342490274657",
+          "offset" => "",
+          "query" => ""
+        },
+        "update_id" => 863_668_430
+      }
+      InlineQuery.new(inline_query_payload)
+      #=> %InlineQuery{...}
 
   """
   @spec new(map()) :: t()
@@ -42,7 +41,7 @@ defmodule TelegramBot.InlineQuery do
 
   defp transform_to_atom_keys(map) when is_map(map) do
     Map.new(map, fn
-      {"from", v} -> {:from, TelegramBot.User.new(v)}
+      {"from", v} -> {:from, User.new(v)}
       {k, v} -> {String.to_atom(k), transform_to_atom_keys(v)}
     end)
   end
@@ -54,8 +53,8 @@ defmodule TelegramBot.InlineQuery do
 
   ### Examples
 
-      iex> InlineQuery.build_query(inline_query)
-      %{inline_query_id: "3975448342490274657", results: [%{...}, ]}
+      InlineQuery.build_query(inline_query)
+      #=> %{inline_query_id: "3975448342490274657", results: [%{...}, ]}
 
   """
   @spec build_reply(t()) :: inline_query_reply()

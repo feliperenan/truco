@@ -48,21 +48,21 @@ defmodule TelegramBot.WebhookPayloadMock do
   defp build(type, _message), do: raise("There is no payload for #{type}")
 
   @inline_query_payload %{
-      "inline_query" => %{
-        "from" => %{
-          "first_name" => "Felipe",
-          "id" => 111_111_111,
-          "is_bot" => false,
-          "language_code" => "en",
-          "last_name" => "Renan",
-          "username" => "feeliperenan"
-        },
-        "id" => "1231038104813901",
-        "offset" => "",
-        "query" => ""
+    "inline_query" => %{
+      "from" => %{
+        "first_name" => "Felipe",
+        "id" => 111_111_111,
+        "is_bot" => false,
+        "language_code" => "en",
+        "last_name" => "Renan",
+        "username" => "feeliperenan"
       },
-      "update_id" => 863_668_430
-    }
+      "id" => "1231038104813901",
+      "offset" => "",
+      "query" => ""
+    },
+    "update_id" => 863_668_430
+  }
 
   def inline_query, do: @inline_query_payload
 end

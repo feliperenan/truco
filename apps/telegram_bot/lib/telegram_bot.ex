@@ -1,19 +1,17 @@
 defmodule TelegramBot do
   alias TelegramBot.InlineQuery
-  alias TelegramBot.MessageHandler
-  alias TelegramBot.TelegramMessage
+  alias TelegramBot.Message
 
   require Logger
 
   @doc """
-  Process the given command received from Telegram webhook and reply it properly..
+  Process the given command received from Telegram webhook and reply it properly.
 
   ### Commands
 
   - /new      - it will create a new game in the chat group.
   - /join     - it will join the sender to the created game.
   - /start    - it will start a the game as long as it has enough players.
-  - /my_cards - replies a keyoboard to who requested to his cards.
 
   ### Gameplay example
 
@@ -48,21 +46,17 @@ defmodule TelegramBot do
 
     The card faced up is: 3 ♠️
     The player who starts is: @felipe
+    |-------------------------------|
+    |        Make your choice       |
+    |-------------------------------|
 
-    To check your cards, send /my_cards
-
-  felipe>
-    /my_cards
-
-  ex-truco-bot>
-    You must be able to see your cards on your keyboard @felipe
   """
-  @spec process_message(map()) :: :ok
-  def process_message(%{"message" => _message} = message_payload) do
+  @spec build_reply(map()) :: :ok
+  def build_reply(%{"message" => _message} = message_payload) do
     reply =
       message_payload
-      |> TelegramMessage.new()
-      |> MessageHandler.process_message()
+      |> Message.new()
+      |> Message.build_reply()
 
     reply_markup = Map.get(reply, :reply_markup, %{})
 
@@ -77,7 +71,7 @@ defmodule TelegramBot do
     :ok
   end
 
-  def process_message(%{"inline_query" => _inline_query} = inline_query_payload) do
+  def build_reply(%{"inline_query" => _inline_query} = inline_query_payload) do
     reply =
       inline_query_payload
       |> InlineQuery.new()
@@ -93,7 +87,7 @@ defmodule TelegramBot do
     :ok
   end
 
-  def process_message(%{"chosen_inline_result" => _chosen_inline_result} = _chosen_inline_result_payload) do
+  def build_reply(%{"chosen_inline_result" => _chosen_inline_result} = _chosen_inline_result_payload) do
     # TODO: implement chosen inline result.
     :ok
   end
