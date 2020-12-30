@@ -1,26 +1,9 @@
 defmodule TelegramBot.MessageTest do
-  use ExUnit.Case
+  use TelegramBot.DataCase
 
   alias TelegramBot.Chat
   alias TelegramBot.Message
   alias TelegramBot.User
-
-  import TelegramBot.Factory
-
-  def start_game_engine(_context) do
-    start_supervised!(%{
-      id: Engine.Application,
-      start: {Engine.Application, :start, [nil, nil]}
-    })
-
-    :ok
-  end
-
-  def start_game_manager(_context) do
-    start_supervised!({TelegramBot.GameManager, %{}})
-
-    :ok
-  end
 
   describe "new/1" do
     test "build a message struct from the webhook payload" do

@@ -1,44 +1,8 @@
 defmodule TelegramBot.InlineQueryTest do
-  use ExUnit.Case
+  use TelegramBot.DataCase
 
   alias TelegramBot.InlineQuery
-  alias TelegramBot.Message
   alias TelegramBot.User
-
-  import TelegramBot.Factory
-
-  defp start_game_engine(_context) do
-    start_supervised!(%{
-      id: Engine.Application,
-      start: {Engine.Application, :start, [nil, nil]}
-    })
-
-    :ok
-  end
-
-  defp start_game_manager(_context) do
-    start_supervised!({TelegramBot.GameManager, %{}})
-
-    :ok
-  end
-
-  defp new_game do
-    :message
-    |> build(text: "/new")
-    |> Message.build_reply()
-  end
-
-  defp join_player(chat, user) do
-    :message
-    |> build(text: "/join", from: user, chat: chat)
-    |> Message.build_reply()
-  end
-
-  defp start_game(chat, user) do
-    :message
-    |> build(text: "/start", chat: chat, from: user)
-    |> Message.build_reply()
-  end
 
   describe "new/1" do
     test "builds an inline query struct given a inline query payload" do

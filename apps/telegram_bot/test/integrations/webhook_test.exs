@@ -1,5 +1,5 @@
 defmodule TelegramBot.Integrations.WebhookTest do
-  use ExUnit.Case, async: true
+  use TelegramBot.DataCase
   use Plug.Test
 
   alias TelegramBot.WebhookPayloadMock
@@ -19,20 +19,6 @@ defmodule TelegramBot.Integrations.WebhookTest do
     assert conn.state == :sent
     assert conn.status == 200
     assert conn.resp_body == "ok"
-  end
-
-  def start_game_engine(_context) do
-    start_supervised!(%{
-      id: Engine.Application,
-      start: {Engine.Application, :start, [nil, nil]}
-    })
-
-    :ok
-  end
-
-  def start_game_manager(_context) do
-    start_supervised!({TelegramBot.GameManager, %{}})
-    :ok
   end
 
   setup [:start_game_engine, :start_game_manager]
