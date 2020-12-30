@@ -6,8 +6,14 @@ defmodule TelegramBot.InlineQuery do
 
   alias TelegramBot.{GameManager, User}
 
-  @type t :: %__MODULE__{id: String.t(), from: map(), update_id: integer(), query: String.t(), offset: String.t()}
-  @type inline_query_reply :: %{inline_query_id: integer(), results: list()}
+  @type t :: %__MODULE__{
+          id: String.t(),
+          from: User.t(),
+          update_id: integer(),
+          query: String.t(),
+          offset: String.t()
+        }
+  @type message_reply :: %{to: integer(), text: String.t()} | list(map())
 
   @doc """
   Build an `InlineQuery` struct given a inline query payload.
@@ -57,7 +63,7 @@ defmodule TelegramBot.InlineQuery do
       #=> %{inline_query_id: "3975448342490274657", results: [%{...}, ]}
 
   """
-  @spec build_reply(t()) :: inline_query_reply()
+  @spec build_reply(t()) :: t()
   def build_reply(%__MODULE__{from: from} = inline_query, opts \\ []) do
     get_image_by = Keyword.get(opts, :get_image_by, &ImageUploader.get_image_by/1)
 

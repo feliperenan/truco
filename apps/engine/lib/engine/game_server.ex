@@ -44,9 +44,9 @@ defmodule Engine.GameServer do
   """
   @spec play_player_card(String.t(), String.t(), integer()) ::
           player_error() | {:ok, Game.t()} | {:finished, Game.t()}
-  def play_player_card(game_name, player_name, card_position)
-      when is_binary(game_name) and is_binary(player_name) and is_integer(card_position) do
-    game_name
+  def play_player_card(game_id, player_name, card_position)
+      when is_binary(game_id) and is_binary(player_name) and is_integer(card_position) do
+    game_id
     |> via_tuple()
     |> GenServer.call({:play_player_card, player_name, card_position})
   end

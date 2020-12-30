@@ -1,0 +1,26 @@
+{
+  "apps/engine/lib/*.ex": {
+    "alternate": "apps/engine/test/{}_test.exs",
+    "type": "src"
+  },
+  "apps/engine/test/*_test.exs": {
+    "alternate": "apps/engine/lib/{}.ex",
+    "type": "src"
+  },
+  "apps/image_uploader/lib/*.ex": {
+    "alternate": "apps/image_uploader/test/{}_test.exs",
+    "type": "src"
+  },
+  "apps/image_uploader/test/*_test.exs": {
+    "alternate": "apps/image_uploader/lib/{}.ex",
+    "type": "src"
+  },
+  "apps/telegram_bot/lib/*.ex": {
+    "alternate": "apps/telegram_bot/test/{}_test.exs",
+    "type": "src"
+  },
+  "apps/telegram_bot/test/*_test.exs": {
+    "alternate": "apps/telegram_bot/lib/{}.ex",
+    "type": "src"
+  }
+}

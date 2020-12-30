@@ -13,9 +13,9 @@ defmodule TelegramBot.Helpers do
     :ok
   end
 
-  def new_game do
+  def new_game(chat \\ TelegramBot.Factory.build(:chat)) do
     :message
-    |> TelegramBot.Factory.build(text: "/new")
+    |> TelegramBot.Factory.build(text: "/new", chat: chat)
     |> TelegramBot.Message.build_reply()
   end
 

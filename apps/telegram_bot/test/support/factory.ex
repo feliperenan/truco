@@ -1,5 +1,11 @@
 defmodule TelegramBot.Factory do
-  alias TelegramBot.{Chat, Message, InlineQuery, User}
+  alias TelegramBot.{
+    Chat,
+    ChosenInlineResult,
+    InlineQuery,
+    Message,
+    User
+  }
 
   def build(:chat) do
     %Chat{
@@ -11,7 +17,7 @@ defmodule TelegramBot.Factory do
   end
 
   def build(:user) do
-    %TelegramBot.User{
+    %User{
       first_name: "Felipe",
       id: 111_111_111,
       is_bot: false,
@@ -38,6 +44,14 @@ defmodule TelegramBot.Factory do
       offset: "",
       query: "",
       update_id: nil
+    }
+  end
+
+  def build(:chosen_inline_result) do
+    %ChosenInlineResult{
+      from: build(:user),
+      query: "",
+      result_id: "Q-clubs"
     }
   end
 

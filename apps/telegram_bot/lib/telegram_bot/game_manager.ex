@@ -33,7 +33,7 @@ defmodule TelegramBot.GameManager do
   """
   @spec new_game(chat()) :: String.t()
   def new_game(chat) do
-    game_id = "#{chat.title}#{chat.id}"
+    game_id = Integer.to_string(chat.id)
 
     Agent.get_and_update(__MODULE__, fn state ->
       {game_id, Map.put_new(state, game_id, [])}
@@ -51,7 +51,7 @@ defmodule TelegramBot.GameManager do
   """
   @spec add_user(chat(), integer()) :: {:ok, String.t(), {:error, :duplicated_join}}
   def add_user(chat, user_id) do
-    game_id = "#{chat.title}#{chat.id}"
+    game_id = Integer.to_string(chat.id)
 
     Agent.get_and_update(__MODULE__, fn state ->
       if user_in_some_game?(state, user_id) do

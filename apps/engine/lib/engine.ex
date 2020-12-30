@@ -56,7 +56,7 @@ defmodule Engine do
   end
 
   @spec play_player_card(game_id(), player_name(), integer()) :: {:ok, Game.t()}
-  defdelegate play_player_card(game, player_name, card_position), to: GameServer
+  defdelegate play_player_card(game_id, player_name, card_position), to: GameServer
 
   @spec truco(game_id(), player_name()) ::
           {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
@@ -77,15 +77,11 @@ defmodule Engine do
   """
   @spec player_turn?(game_id(), player_name()) :: boolean() | {:error, :game_not_found}
   def player_turn?(game_id, player_name) do
-    if GameSupervisor.game_exists?(game_id) do
-      game = GameServer.get(game_id)
-      current_match = List.last(game.matches)
-      player = Enum.find(game.players, %{id: nil}, &(&1.name == player_name))
+    game = GameServer.get(game_id)
+    current_match = List.last(game.matches)
+    player = Enum.find(game.players, %{id: nil}, &(&1.name == player_name))
 
-      current_match.next_player_id == player.id
-    else
-      {:error, :game_not_found}
-    end
+    current_match.next_player_id == player.id
   end
 
   @doc """

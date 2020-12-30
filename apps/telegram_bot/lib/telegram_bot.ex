@@ -1,4 +1,5 @@
 defmodule TelegramBot do
+  alias TelegramBot.ChosenInlineResult
   alias TelegramBot.InlineQuery
   alias TelegramBot.Message
 
@@ -52,28 +53,25 @@ defmodule TelegramBot do
 
   """
   @spec build_reply(map()) :: :ok
-  def build_reply(%{"message" => _message} = message_payload) do
-    reply =
-      message_payload
-      |> Message.new()
-      |> Message.build_reply()
+  def build_reply(%{"message" => _message} = message) do
+    message
+    |> Message.new()
+    |> Message.build_reply()
+    |> case do
+      :ignore ->
+        :ok
 
-    reply_markup = Map.get(reply, :reply_markup, %{})
+      %{to: to, text: text} = reply ->
+        reply_markup = Map.get(reply, :reply_markup, %{})
+        {:ok, _message} = Nadia.send_message(to, text, reply_markup: reply_markup)
 
-    {:ok, _message} =
-      Nadia.send_message(
-        reply.to,
-        reply.text,
-        reply_markup: reply_markup,
-        reply_to_message_id: reply[:message_id]
-      )
-
-    :ok
+        :ok
+    end
   end
 
-  def build_reply(%{"inline_query" => _inline_query} = inline_query_payload) do
+  def build_reply(%{"inline_query" => _inline_query} = inline_query) do
     reply =
-      inline_query_payload
+      inline_query
       |> InlineQuery.new()
       |> InlineQuery.build_reply()
 
@@ -87,8 +85,15 @@ defmodule TelegramBot do
     :ok
   end
 
-  def build_reply(%{"chosen_inline_result" => _chosen_inline_result} = _chosen_inline_result_payload) do
-    # TODO: implement chosen inline result.
+  def build_reply(%{"chosen_inline_result" => _chosen_inline_result} = chosen_inline_result) do
+    reply =
+      chosen_inline_result
+      |> ChosenInlineResult.new()
+      |> ChosenInlineResult.build_reply()
+
+    reply_markup = Map.get(reply, :reply_markup, %{})
+    {:ok, _message} = Nadia.send_message(reply.to, reply.text, reply_markup: reply_markup)
+
     :ok
   end
 end
