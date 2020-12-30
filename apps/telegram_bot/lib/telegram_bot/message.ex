@@ -50,7 +50,6 @@ defmodule TelegramBot.Message do
        },
        "update_id" => 863_667_915
      }
-
      Message.new(message_payload)
      #=> %__MODULE__{...}
   """
@@ -66,8 +65,8 @@ defmodule TelegramBot.Message do
 
   defp transform_to_atom_keys(map) when is_map(map) do
     Map.new(map, fn
-      {"from", v} -> {:from, TelegramBot.User.new(v)}
-      {"chat", v} -> {:chat, TelegramBot.Chat.new(v)}
+      {"from", v} -> {:from, User.new(v)}
+      {"chat", v} -> {:chat, Chat.new(v)}
       {k, v} -> {String.to_atom(k), transform_to_atom_keys(v)}
     end)
   end

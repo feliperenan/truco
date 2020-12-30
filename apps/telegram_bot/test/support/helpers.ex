@@ -4,6 +4,7 @@ defmodule TelegramBot.Helpers do
       id: Engine.Application,
       start: {Engine.Application, :start, [nil, nil]}
     })
+
     :ok
   end
 

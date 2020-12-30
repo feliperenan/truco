@@ -4,7 +4,7 @@ defmodule TelegramBot.InlineQuery do
   """
   defstruct [:update_id, :from, :id, :offset, :query]
 
-  alias TelegramBot.GameManager
+  alias TelegramBot.{GameManager, User}
 
   @type t :: %__MODULE__{id: String.t(), from: map(), update_id: integer(), query: String.t(), offset: String.t()}
   @type inline_query_reply :: %{inline_query_id: integer(), results: list()}
@@ -41,7 +41,7 @@ defmodule TelegramBot.InlineQuery do
 
   defp transform_to_atom_keys(map) when is_map(map) do
     Map.new(map, fn
-      {"from", v} -> {:from, TelegramBot.User.new(v)}
+      {"from", v} -> {:from, User.new(v)}
       {k, v} -> {String.to_atom(k), transform_to_atom_keys(v)}
     end)
   end
