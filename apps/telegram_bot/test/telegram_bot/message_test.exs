@@ -98,18 +98,18 @@ defmodule TelegramBot.MessageTest do
     setup [:start_game_engine, :start_game_manager]
 
     test "/new create a new game" do
-      telegram_message = build(:message, text: "/new")
+      message = build(:message, text: "/new")
 
       assert %{
                text: "The game has been created and it is ready for receive players.",
-               to: telegram_message.chat.id
-             } == Message.build_reply(telegram_message)
+               to: message.chat.id
+             } == Message.build_reply(message)
     end
 
     test "/new does not create twice" do
-      telegram_message = build(:message, text: "/new")
+      message = build(:message, text: "/new")
 
-      Message.build_reply(telegram_message)
+      Message.build_reply(message)
 
       text = ~s"""
       There is already a game created for this group.
@@ -119,56 +119,50 @@ defmodule TelegramBot.MessageTest do
 
       assert %{
                text: text,
-               to: telegram_message.chat.id
-             } == Message.build_reply(telegram_message)
+               to: message.chat.id
+             } == Message.build_reply(message)
     end
 
     test "/join joins who sent the message to the created game" do
-      :message
-      |> build(text: "/new")
-      |> Message.build_reply()
+      new_game()
 
-      telegram_message = build(:message, text: "/join")
+      message = build(:message, text: "/join")
 
       text =
         "You have joined the game. Now, wait for other players or send /start to start the game in case you have enough players."
 
       assert %{
                text: text,
-               to: telegram_message.chat.id
-             } == Message.build_reply(telegram_message)
+               to: message.chat.id
+             } == Message.build_reply(message)
     end
 
     test "/join returns an error in case there is no game created" do
-      telegram_message = build(:message, text: "/join")
+      message = build(:message, text: "/join")
 
       text = "Game has not been created yet. First you need to send /new in order to create the game."
 
       assert %{
                text: text,
-               to: telegram_message.chat.id
-             } == Message.build_reply(telegram_message)
+               to: message.chat.id
+             } == Message.build_reply(message)
     end
 
     test "/join does not join the same player twice in the same game" do
-      :message
-      |> build(text: "/new")
-      |> Message.build_reply()
+      new_game()
 
-      telegram_message = build(:message, text: "/join")
+      message = build(:message, text: "/join")
 
-      Message.build_reply(telegram_message)
+      Message.build_reply(message)
 
       assert %{
                text: "You have already joined a game.",
-               to: telegram_message.chat.id
-             } == Message.build_reply(telegram_message)
+               to: message.chat.id
+             } == Message.build_reply(message)
     end
 
     test "/join supports 4 players in total" do
-      :message
-      |> build(text: "/new")
-      |> Message.build_reply()
+      new_game()
 
       chat = build(:chat, type: "group")
 
@@ -179,55 +173,40 @@ defmodule TelegramBot.MessageTest do
         444_444_444
       ]
       |> Enum.each(fn user_id ->
-        from = build(:user, id: user_id, username: "#{user_id}")
+        user = build(:user, id: user_id, username: "#{user_id}")
 
-        :message
-        |> build(text: "/join", from: from, chat: chat)
-        |> Message.build_reply()
+        join_player(chat, user)
       end)
 
-      telegram_message = build(:message, text: "/join", from: build(:user, id: 555_555_555))
+      message = build(:message, text: "/join", from: build(:user, id: 555_555_555))
 
       assert %{
                text: "This game cannot have more players. You are now ready to start the game with /start.",
-               to: telegram_message.chat.id
-             } == Message.build_reply(telegram_message)
+               to: message.chat.id
+             } == Message.build_reply(message)
     end
 
     test "/start starts the game once it has enough players" do
-      :message
-      |> build(text: "/new")
-      |> Message.build_reply()
-
       chat = build(:chat, type: "group")
+      user_a = build(:user, id: 1, username: "user-1")
+      user_b = build(:user, id: 2, username: "user-2")
 
-      # join two players: user-1 and user-2.
-      Enum.each(1..2, fn user_id ->
-        from = build(:user, id: user_id, username: "user-#{user_id}")
+      new_game()
+      join_player(chat, user_a)
+      join_player(chat, user_b)
 
-        :message
-        |> build(text: "/join", from: from, chat: chat)
-        |> Message.build_reply()
-      end)
+      message = build(:message, text: "/start", chat: chat, from: user_a)
 
-      telegram_message =
-        build(
-          :message,
-          text: "/start",
-          chat: chat,
-          from: build(:user, id: 1, username: "user-1")
-        )
-
-      reply = Message.build_reply(telegram_message)
+      reply = Message.build_reply(message)
 
       assert reply.text =~ "The game has been started"
-      assert reply.to == telegram_message.chat.id
+      assert reply.to == message.chat.id
 
       # Try to start the game again to make sure game can't be started twice.
-      reply = Message.build_reply(telegram_message)
+      reply = Message.build_reply(message)
 
       assert reply.text == "Game has been started already."
-      assert reply.to == telegram_message.chat.id
+      assert reply.to == message.chat.id
     end
   end
 end
