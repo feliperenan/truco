@@ -2,8 +2,8 @@ defmodule TelegramBot.InlineQueryTest do
   use ExUnit.Case
 
   alias TelegramBot.InlineQuery
+  alias TelegramBot.Message
   alias TelegramBot.User
-  alias TelegramBot.MessageHandler
 
   import TelegramBot.Factory
 
@@ -25,19 +25,19 @@ defmodule TelegramBot.InlineQueryTest do
   defp new_game do
     :message
     |> build(text: "/new")
-    |> MessageHandler.process_message()
+    |> Message.build_reply()
   end
 
   defp join_player(chat, user) do
     :message
     |> build(text: "/join", from: user, chat: chat)
-    |> MessageHandler.process_message()
+    |> Message.build_reply()
   end
 
   defp start_game(chat, user) do
     :message
     |> build(text: "/start", chat: chat, from: user)
-    |> MessageHandler.process_message()
+    |> Message.build_reply()
   end
 
   describe "new/1" do

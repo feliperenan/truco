@@ -1,6 +1,5 @@
 defmodule TelegramBot do
   alias TelegramBot.InlineQuery
-  alias TelegramBot.MessageHandler
   alias TelegramBot.Message
 
   require Logger
@@ -62,7 +61,7 @@ defmodule TelegramBot do
     reply =
       message_payload
       |> Message.new()
-      |> MessageHandler.process_message()
+      |> Message.build_reply()
 
     reply_markup = Map.get(reply, :reply_markup, %{})
 
