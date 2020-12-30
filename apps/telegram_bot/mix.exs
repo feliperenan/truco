@@ -32,9 +32,10 @@ defmodule TelegramBot.MixProject do
   defp deps do
     [
       {:engine, in_umbrella: true},
+      {:image_uploader, in_umbrella: true},
       {:plug_cowboy, "~> 2.0"},
       {:jason, "~> 1.2"},
-      {:nadia, "~> 0.7.0"}
+      {:nadia, github: "feliperenan/nadia"}
     ]
   end
 end

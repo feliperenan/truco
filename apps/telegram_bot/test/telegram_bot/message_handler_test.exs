@@ -11,6 +11,8 @@ defmodule TelegramBot.MessageHandlerTest do
       start: {Engine.Application, :start, [nil, nil]}
     })
 
+    start_supervised!({TelegramBot.GameManager, %{}})
+
     :ok
   end
 
@@ -22,25 +24,6 @@ defmodule TelegramBot.MessageHandlerTest do
 
       assert %{
                text: "The game has been created and it is ready for receive players.",
-               to: telegram_message.chat.id
-             } == MessageHandler.process_message(telegram_message)
-    end
-
-    test "/new does not start game on private conversation" do
-      telegram_message =
-        build(:telegram_message,
-          text: "/new",
-          chat: build(:telegram_message_chat, type: "private")
-        )
-
-      text = ~s"""
-      I can't start a game from a private conversation.
-
-      In order to play the game, you need to create a group with people you want to play.
-      """
-
-      assert %{
-               text: text,
                to: telegram_message.chat.id
              } == MessageHandler.process_message(telegram_message)
     end
@@ -99,7 +82,7 @@ defmodule TelegramBot.MessageHandlerTest do
       MessageHandler.process_message(telegram_message)
 
       assert %{
-               text: "You have already joined the game. Now, wait for other players to join.",
+               text: "You have already joined a game.",
                to: telegram_message.chat.id
              } == MessageHandler.process_message(telegram_message)
     end
@@ -118,7 +101,7 @@ defmodule TelegramBot.MessageHandlerTest do
         444_444_444
       ]
       |> Enum.each(fn user_id ->
-        from = build(:telegram_message_from, id: user_id, username: "#{user_id}")
+        from = build(:user, id: user_id, username: "#{user_id}")
 
         :telegram_message
         |> build(text: "/join", from: from, chat: chat)
@@ -126,7 +109,7 @@ defmodule TelegramBot.MessageHandlerTest do
       end)
 
       telegram_message =
-        build(:telegram_message, text: "/join", from: build(:telegram_message_from, %{id: 555_555_555}))
+        build(:telegram_message, text: "/join", from: build(:user, id: 555_555_555))
 
       assert %{
                text: "This game cannot have more players. You are now ready to start the game with /start.",
@@ -143,14 +126,21 @@ defmodule TelegramBot.MessageHandlerTest do
 
       # join two players: user-1 and user-2.
       Enum.each(1..2, fn user_id ->
-        from = build(:telegram_message_from, id: user_id, username: "user-#{user_id}")
+        from = build(:user, id: user_id, username: "user-#{user_id}")
 
         :telegram_message
         |> build(text: "/join", from: from, chat: chat)
         |> MessageHandler.process_message()
       end)
 
-      telegram_message = build(:telegram_message, text: "/start", chat: chat)
+      telegram_message =
+        build(
+          :telegram_message,
+          text: "/start",
+          chat: chat,
+          from: build(:user, id: 1, username: "user-1")
+        )
+
       reply = MessageHandler.process_message(telegram_message)
 
       assert reply.text =~ "The game has been started"
@@ -159,42 +149,8 @@ defmodule TelegramBot.MessageHandlerTest do
       # Try to start the game again to make sure game can't be started twice.
       reply = MessageHandler.process_message(telegram_message)
 
-      assert reply.text == "Game has been started already"
+      assert reply.text == "Game has been started already."
       assert reply.to == telegram_message.chat.id
-    end
-
-    test "/my_cards returns players cards" do
-      :telegram_message
-      |> build(text: "/new")
-      |> MessageHandler.process_message()
-
-      chat = build(:telegram_message_chat, type: "group")
-
-      # join two players: user-1 and user-2.
-      [from_user_1, _from_user_2] =
-        Enum.map(1..2, fn user_id ->
-          from = build(:telegram_message_from, id: user_id, username: "user-#{user_id}")
-
-          :telegram_message
-          |> build(text: "/join", from: from, chat: chat)
-          |> MessageHandler.process_message()
-
-          from
-        end)
-
-      :telegram_message
-      |> build(text: "/start", chat: chat)
-      |> MessageHandler.process_message()
-
-      telegram_message = build(:telegram_message, text: "/my_cards", from: from_user_1, message_id: 123)
-      reply = MessageHandler.process_message(telegram_message)
-
-      assert reply.text == "You must be able to see your cards on your keyboard @user-1"
-      assert reply.message_id == telegram_message.message_id
-      assert reply.reply_markup.selective == true
-      assert reply.reply_markup.one_time_keyboard == true
-
-      for button <- List.first(reply.reply_markup.keyboard), do: assert(button.text)
     end
   end
 end

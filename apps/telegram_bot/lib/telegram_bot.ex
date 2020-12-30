@@ -1,6 +1,7 @@
 defmodule TelegramBot do
-  alias TelegramBot.TelegramMessage
+  alias TelegramBot.InlineQuery
   alias TelegramBot.MessageHandler
+  alias TelegramBot.TelegramMessage
 
   require Logger
 
@@ -57,7 +58,7 @@ defmodule TelegramBot do
     You must be able to see your cards on your keyboard @felipe
   """
   @spec process_message(map()) :: :ok
-  def process_message(message_payload) do
+  def process_message(%{"message" => _message} = message_payload) do
     reply =
       message_payload
       |> TelegramMessage.new()
@@ -73,6 +74,27 @@ defmodule TelegramBot do
         reply_to_message_id: reply[:message_id]
       )
 
+    :ok
+  end
+
+  def process_message(%{"inline_query" => _inline_query} = inline_query_payload) do
+    reply =
+      inline_query_payload
+      |> InlineQuery.new()
+      |> InlineQuery.build_reply()
+
+    Nadia.answer_inline_query(
+      reply.inline_query_id,
+      reply.results,
+      cache_time: 0,
+      is_personal: true
+    )
+
+    :ok
+  end
+
+  def process_message(%{"chosen_inline_result" => _chosen_inline_result} = _chosen_inline_result_payload) do
+    # TODO: implement chosen inline result.
     :ok
   end
 end

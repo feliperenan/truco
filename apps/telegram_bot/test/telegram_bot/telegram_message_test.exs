@@ -2,6 +2,7 @@ defmodule TelegramBot.TelegramMessageTest do
   use ExUnit.Case
 
   alias TelegramBot.TelegramMessage
+  alias TelegramBot.User
 
   describe "new/1" do
     test "build a message struct from the webhook payload" do
@@ -36,7 +37,7 @@ defmodule TelegramBot.TelegramMessageTest do
                  type: "group"
                },
                date: 1_605_212_571,
-               from: %{
+               from: %User{
                  first_name: "Felipe",
                  id: 925_606_196,
                  is_bot: false,
@@ -79,7 +80,7 @@ defmodule TelegramBot.TelegramMessageTest do
                  type: "group"
                },
                date: 1_606_743_674,
-               from: %{
+               from: %User{
                  first_name: "Felipe",
                  id: 222_222_222,
                  is_bot: false,

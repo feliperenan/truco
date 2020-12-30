@@ -29,4 +29,10 @@ defmodule ImageUploader do
 
     :ok
   end
+
+  @doc """
+  Get image according to the given opts.
+  """
+  @spec get_image_by(Keyword.t() | map()) :: Image.t()
+  def get_image_by(opts), do: Repo.get_by(Image, opts)
 end

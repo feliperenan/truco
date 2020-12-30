@@ -3,10 +3,6 @@ defmodule TelegramBot.TelegramMessage do
     defstruct [:all_members_are_administrators, :id, :title, :type]
   end
 
-  defmodule From do
-    defstruct [:first_name, :id, :is_bot, :language_code, :last_name, :username]
-  end
-
   @moduledoc """
   Represents a telegram message which is parsed from the following payload:
 
@@ -53,7 +49,10 @@ defmodule TelegramBot.TelegramMessage do
   end
 
   defp transform_to_atom_keys(map) when is_map(map) do
-    Map.new(map, fn {k, v} -> {String.to_atom(k), transform_to_atom_keys(v)} end)
+    Map.new(map, fn
+      {"from", v} -> {:from, TelegramBot.User.new(v)}
+      {k, v} -> {String.to_atom(k), transform_to_atom_keys(v)}
+    end)
   end
 
   defp transform_to_atom_keys(value), do: value

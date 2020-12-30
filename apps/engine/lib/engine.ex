@@ -67,10 +67,34 @@ defmodule Engine do
   defdelegate answer(game, player_name, answer), to: GameServer
 
   @doc """
+  Returns a game given its id.
+  """
+  @spec get_game(game_id()) :: Game.t()
+  def get_game(game_id), do: GameServer.get(game_id)
+
+  @doc """
+  Returns true if it is the given player turn.
+  """
+  @spec player_turn?(game_id(), player_name()) :: boolean() | {:error, :game_not_found}
+  def player_turn?(game_id, player_name) do
+    if GameSupervisor.game_exists?(game_id) do
+      game = GameServer.get(game_id)
+      current_match = List.last(game.matches)
+      player = Enum.find(game.players, %{id: nil}, &(&1.name == player_name))
+
+      current_match.next_player_id == player.id
+    else
+      {:error, :game_not_found}
+    end
+  end
+
+  @doc """
   Returns a player hand given the game_id and player_name.
   """
   @spec get_player_hand(game_id(), player_name()) ::
-          {:ok, PlayerHand.t()} | {:error, :game_not_found} | {:error, :player_not_found}
+          {:ok, PlayerHand.t()}
+          | {:error, :game_not_found}
+          | {:error, :player_not_found}
   def get_player_hand(game_id, player_name) do
     if GameSupervisor.game_exists?(game_id) do
       game = GameServer.get(game_id)

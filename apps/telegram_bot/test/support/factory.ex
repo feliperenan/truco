@@ -1,5 +1,5 @@
 defmodule TelegramBot.Factory do
-  alias TelegramBot.TelegramMessage
+  alias TelegramBot.{TelegramMessage, InlineQuery}
 
   def build(:telegram_message_chat) do
     %TelegramMessage.Chat{
@@ -10,8 +10,8 @@ defmodule TelegramBot.Factory do
     }
   end
 
-  def build(:telegram_message_from) do
-    %TelegramMessage.From{
+  def build(:user) do
+    %TelegramBot.User{
       first_name: "Felipe",
       id: 111_111_111,
       is_bot: false,
@@ -25,9 +25,19 @@ defmodule TelegramBot.Factory do
     %TelegramMessage{
       chat: build(:telegram_message_chat),
       date: 1_605_212_571,
-      from: build(:telegram_message_from),
+      from: build(:user),
       message_id: nil,
       text: "/start"
+    }
+  end
+
+  def build(:inline_query) do
+    %InlineQuery{
+      from: build(:user),
+      id: "3975448342490274657",
+      offset: "",
+      query: "",
+      update_id: nil
     }
   end
 
