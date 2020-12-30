@@ -23,19 +23,19 @@ defmodule TelegramBot.InlineQueryTest do
   end
 
   defp new_game do
-    :telegram_message
+    :message
     |> build(text: "/new")
     |> MessageHandler.process_message()
   end
 
   defp join_player(chat, user) do
-    :telegram_message
+    :message
     |> build(text: "/join", from: user, chat: chat)
     |> MessageHandler.process_message()
   end
 
   defp start_game(chat, user) do
-    :telegram_message
+    :message
     |> build(text: "/start", chat: chat, from: user)
     |> MessageHandler.process_message()
   end
@@ -80,7 +80,7 @@ defmodule TelegramBot.InlineQueryTest do
     setup [:start_game_engine, :start_game_manager]
 
     setup _context do
-      chat = build(:telegram_message_chat, type: "group")
+      chat = build(:chat, type: "group")
       user_a = build(:user, id: 1, username: "user-1")
       user_b = build(:user, id: 2, username: "user-2")
 

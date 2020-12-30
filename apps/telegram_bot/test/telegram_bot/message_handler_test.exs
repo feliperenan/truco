@@ -20,7 +20,7 @@ defmodule TelegramBot.MessageHandlerTest do
     setup :start_game_engine
 
     test "/new create a new game" do
-      telegram_message = build(:telegram_message, text: "/new")
+      telegram_message = build(:message, text: "/new")
 
       assert %{
                text: "The game has been created and it is ready for receive players.",
@@ -29,7 +29,7 @@ defmodule TelegramBot.MessageHandlerTest do
     end
 
     test "/new does not create twice" do
-      telegram_message = build(:telegram_message, text: "/new")
+      telegram_message = build(:message, text: "/new")
 
       MessageHandler.process_message(telegram_message)
 
@@ -46,11 +46,11 @@ defmodule TelegramBot.MessageHandlerTest do
     end
 
     test "/join joins who sent the message to the created game" do
-      :telegram_message
+      :message
       |> build(text: "/new")
       |> MessageHandler.process_message()
 
-      telegram_message = build(:telegram_message, text: "/join")
+      telegram_message = build(:message, text: "/join")
 
       text =
         "You have joined the game. Now, wait for other players or send /start to start the game in case you have enough players."
@@ -62,7 +62,7 @@ defmodule TelegramBot.MessageHandlerTest do
     end
 
     test "/join returns an error in case there is no game created" do
-      telegram_message = build(:telegram_message, text: "/join")
+      telegram_message = build(:message, text: "/join")
 
       text = "Game has not been created yet. First you need to send /new in order to create the game."
 
@@ -73,11 +73,11 @@ defmodule TelegramBot.MessageHandlerTest do
     end
 
     test "/join does not join the same player twice in the same game" do
-      :telegram_message
+      :message
       |> build(text: "/new")
       |> MessageHandler.process_message()
 
-      telegram_message = build(:telegram_message, text: "/join")
+      telegram_message = build(:message, text: "/join")
 
       MessageHandler.process_message(telegram_message)
 
@@ -88,11 +88,11 @@ defmodule TelegramBot.MessageHandlerTest do
     end
 
     test "/join supports 4 players in total" do
-      :telegram_message
+      :message
       |> build(text: "/new")
       |> MessageHandler.process_message()
 
-      chat = build(:telegram_message_chat, type: "group")
+      chat = build(:chat, type: "group")
 
       [
         111_111_111,
@@ -103,13 +103,13 @@ defmodule TelegramBot.MessageHandlerTest do
       |> Enum.each(fn user_id ->
         from = build(:user, id: user_id, username: "#{user_id}")
 
-        :telegram_message
+        :message
         |> build(text: "/join", from: from, chat: chat)
         |> MessageHandler.process_message()
       end)
 
       telegram_message =
-        build(:telegram_message, text: "/join", from: build(:user, id: 555_555_555))
+        build(:message, text: "/join", from: build(:user, id: 555_555_555))
 
       assert %{
                text: "This game cannot have more players. You are now ready to start the game with /start.",
@@ -118,24 +118,24 @@ defmodule TelegramBot.MessageHandlerTest do
     end
 
     test "/start starts the game once it has enough players" do
-      :telegram_message
+      :message
       |> build(text: "/new")
       |> MessageHandler.process_message()
 
-      chat = build(:telegram_message_chat, type: "group")
+      chat = build(:chat, type: "group")
 
       # join two players: user-1 and user-2.
       Enum.each(1..2, fn user_id ->
         from = build(:user, id: user_id, username: "user-#{user_id}")
 
-        :telegram_message
+        :message
         |> build(text: "/join", from: from, chat: chat)
         |> MessageHandler.process_message()
       end)
 
       telegram_message =
         build(
-          :telegram_message,
+          :message,
           text: "/start",
           chat: chat,
           from: build(:user, id: 1, username: "user-1")

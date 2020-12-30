@@ -1,6 +1,7 @@
 defmodule TelegramBot.MessageTest do
   use ExUnit.Case
 
+  alias TelegramBot.Chat
   alias TelegramBot.Message
   alias TelegramBot.User
 
@@ -30,7 +31,7 @@ defmodule TelegramBot.MessageTest do
       }
 
       assert %Message{
-               chat: %{
+               chat: %Chat{
                  all_members_are_administrators: true,
                  id: 419_752_573,
                  title: "truco-test",
@@ -73,7 +74,7 @@ defmodule TelegramBot.MessageTest do
       }
 
       assert %Message{
-               chat: %{
+               chat: %Chat{
                  all_members_are_administrators: true,
                  id: 111_111_111,
                  title: "truco-test",

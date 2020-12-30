@@ -1,8 +1,18 @@
 defmodule TelegramBot.Message do
   @moduledoc """
-  Represents a telegram message which is parsed from the following payload:
+  Provide functions for handling Telegram messages.
+  """
 
-    payload = %{
+  defstruct [:chat, :date, :from, :message_id, :text]
+
+  @type t() :: %__MODULE__{}
+
+  @doc """
+  Builds a `Message` struct from the given message payload.
+
+  ### Examples
+
+    message_payload = %{
        "message" => %{
          "chat" => %{
            "all_members_are_administrators" => true,
@@ -25,18 +35,8 @@ defmodule TelegramBot.Message do
        "update_id" => 863_667_915
      }
 
-  This message is sent by Telegram API through webhook.
-  """
-  defstruct [:chat, :date, :from, :message_id, :text]
-
-  defmodule Chat do
-    defstruct [:all_members_are_administrators, :id, :title, :type]
-  end
-
-  @type t() :: %__MODULE__{}
-
-  @doc """
-  Converts the given payload to __MODULE__ struct.
+     Message.new(message_payload)
+     #=> %Message{...}
   """
   @spec new(map()) :: t()
   def new(%{"message" => message}) do
@@ -51,6 +51,7 @@ defmodule TelegramBot.Message do
   defp transform_to_atom_keys(map) when is_map(map) do
     Map.new(map, fn
       {"from", v} -> {:from, TelegramBot.User.new(v)}
+      {"chat", v} -> {:chat, TelegramBot.Chat.new(v)}
       {k, v} -> {String.to_atom(k), transform_to_atom_keys(v)}
     end)
   end

@@ -14,24 +14,24 @@ defmodule TelegramBot.InlineQuery do
 
   ### Examples
 
-      iex> inline_query_payload = %{
-      ...>   "inline_query" => %{
-      ...>     "from" => %{
-      ...>       "first_name" => "Felipe",
-      ...>       "id" => 111_111_111,
-      ...>       "is_bot" => false,
-      ...>       "language_code" => "en",
-      ...>       "last_name" => "Renan",
-      ...>       "username" => "feliperenan"
-      ...>     },
-      ...>     "id" => "3975448342490274657",
-      ...>     "offset" => "",
-      ...>     "query" => ""
-      ...>   },
-      ...>   "update_id" => 863_668_430
-      ...> }
-      iex> InlineQuery.new(inline_query_payload)
-      %InlineQuery{...}
+      inline_query_payload = %{
+        "inline_query" => %{
+          "from" => %{
+            "first_name" => "Felipe",
+            "id" => 111_111_111,
+            "is_bot" => false,
+            "language_code" => "en",
+            "last_name" => "Renan",
+            "username" => "feliperenan"
+          },
+          "id" => "3975448342490274657",
+          "offset" => "",
+          "query" => ""
+        },
+        "update_id" => 863_668_430
+      }
+      InlineQuery.new(inline_query_payload)
+      #=> %InlineQuery{...}
 
   """
   @spec new(map()) :: t()
@@ -53,8 +53,8 @@ defmodule TelegramBot.InlineQuery do
 
   ### Examples
 
-      iex> InlineQuery.build_query(inline_query)
-      %{inline_query_id: "3975448342490274657", results: [%{...}, ]}
+      InlineQuery.build_query(inline_query)
+      #=> %{inline_query_id: "3975448342490274657", results: [%{...}, ]}
 
   """
   @spec build_reply(t()) :: inline_query_reply()
