@@ -4,16 +4,17 @@ defmodule TelegramBot.Message do
   """
   alias TelegramBot.{Chat, GameManager, User}
 
-  defstruct [:chat, :date, :from, :message_id, :text]
+  defstruct [:chat, :date, :from, :message_id, :text, :photo]
 
   @type t() :: %__MODULE__{
           chat: %Chat{},
           date: integer(),
           from: %User{},
           message_id: integer(),
-          text: String.t()
+          text: String.t(),
+          photo: list()
         }
-  @type message_reply :: %{to: integer(), text: String.t()} | list(map())
+  @type message_reply :: %{to: integer(), text: String.t(), reply_markup: map()} | :ignore
 
   # Map a card symbol to its emoji.
   @suit_to_emoji %{
@@ -80,6 +81,9 @@ defmodule TelegramBot.Message do
 
   @doc """
   Build a message reply according to the given `Message` struct.
+
+  This function will return `:ignore` in case there are photos inside of the message. That is because this message is
+  probably coming from a chosen inline query and the reply will be built on `ChosenInlineResult`.
 
   ### Examples
 
@@ -169,6 +173,10 @@ defmodule TelegramBot.Message do
         %{to: chat.id, text: "There is something wrong so I couldn't start the game :("}
     end
   end
+
+  # For now I'm ignore messages that includes a photo since it likely comes from a `inline_query` which already builds
+  # a reply back to user.
+  def build_reply(%__MODULE__{photo: photo}) when is_list(photo), do: :ignore
 
   def build_reply(%__MODULE__{chat: %{type: "group"} = chat}) do
     %{to: chat.id, text: "Sorry, I didn't understand this message :(."}
