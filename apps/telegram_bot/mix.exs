@@ -12,7 +12,8 @@ defmodule TelegramBot.MixProject do
       elixir: "~> 1.10",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      dialyzer: dialyzer()
     ]
   end
 
@@ -35,7 +36,15 @@ defmodule TelegramBot.MixProject do
       {:image_uploader, in_umbrella: true},
       {:plug_cowboy, "~> 2.0"},
       {:jason, "~> 1.2"},
-      {:nadia, github: "feliperenan/nadia"}
+      {:nadia, github: "feliperenan/nadia"},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_core_path: "priv/plts",
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
     ]
   end
 end
