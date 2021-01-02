@@ -63,7 +63,7 @@ defmodule TelegramBot.InlineQuery do
       #=> %{inline_query_id: "3975448342490274657", results: [%{...}, ]}
 
   """
-  @spec build_reply(t()) :: t()
+  @spec build_reply(t()) :: %{inline_query_id: String.t(), results: list()}
   def build_reply(%__MODULE__{from: from} = inline_query, opts \\ []) do
     get_image_by = Keyword.get(opts, :get_image_by, &ImageUploader.get_image_by/1)
 

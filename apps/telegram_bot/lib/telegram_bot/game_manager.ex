@@ -17,7 +17,7 @@ defmodule TelegramBot.GameManager do
   """
   use Agent
 
-  @type chat :: %{id: integer(), title: String.t()}
+  @type chat :: TelegramBot.Chat.t()
 
   def start_link(initial_value \\ %{}) do
     Agent.start_link(fn -> initial_value end, name: __MODULE__)
@@ -49,7 +49,7 @@ defmodule TelegramBot.GameManager do
       iex> GameManager.add_user(%{id: 1, title: "my-group"}, 19386910)
       {:ok, "my-group-1"}
   """
-  @spec add_user(chat(), integer()) :: {:ok, String.t(), {:error, :duplicated_join}}
+  @spec add_user(chat(), integer()) :: {:ok, String.t()} | {:error, :duplicated_join}
   def add_user(chat, user_id) do
     game_id = Integer.to_string(chat.id)
 

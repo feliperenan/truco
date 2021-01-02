@@ -3,7 +3,7 @@ defmodule Engine do
   Documentation for `Engine`.
   """
 
-  alias Engine.{Game, GameSupervisor, GameServer}
+  alias Engine.{Game, GameSupervisor, GameServer, PlayerHand}
 
   @type game_id :: String.t()
   @type player_name :: String.t()

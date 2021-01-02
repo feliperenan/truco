@@ -2,6 +2,8 @@ defmodule Engine.Card do
   @enforce_keys [:suit, :symbol]
   defstruct suit: nil, symbol: nil, special: false, strength: 0
 
+  @type t() :: %__MODULE__{suit: atom(), symbol: String.t()}
+
   @suits ~w(diamonds spades hearts clubs)a
   @symbols ~w(4 5 6 7 Q J K A 2 3)
   @symbols_with_index Enum.with_index(@symbols)
