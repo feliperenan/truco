@@ -18,9 +18,11 @@ defmodule TelegramBot.MixProject do
   end
 
   # Run "mix help compile.app" to learn about applications.
+  # TODO: Remove mix from `extra_applications` as soon as we figure out a better way to start process dynamically on
+  # application.ex.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :mix],
       mod: {TelegramBot.Application, []}
     ]
   end
