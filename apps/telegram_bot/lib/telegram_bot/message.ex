@@ -167,7 +167,10 @@ defmodule TelegramBot.Message do
         %{to: chat.id, text: "Game has been started already."}
 
       {:error, :not_found} ->
-        %{to: chat.id, text: "Game is not found. Make sure players have been joined the game with /join."}
+        %{
+          to: chat.id,
+          text: "Game is not found. Make sure players have been joined the game with /join."
+        }
 
       {:error, _error_message} ->
         %{to: chat.id, text: "There is something wrong so I couldn't start the game :("}

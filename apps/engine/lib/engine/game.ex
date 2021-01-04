@@ -18,13 +18,13 @@ defmodule Engine.Game do
 
   @players_limit 4
 
-  def add_player(%__MODULE__{players: players}, _player_name) when length(players) >= @players_limit,
-    do: {:error, :players_limit_reached}
-
   @doc """
   Adds the given player name to the game.
   """
   @spec add_player(t(), String.t()) :: {:ok, t()} | {:error, :player_already_joined} | {:error, :players_limit_reached}
+  def add_player(%__MODULE__{players: players}, _player_name) when length(players) >= @players_limit,
+    do: {:error, :players_limit_reached}
+
   def add_player(%__MODULE__{players: players} = game, player_name) do
     case Enum.find(players, &(&1.name == player_name)) do
       nil ->

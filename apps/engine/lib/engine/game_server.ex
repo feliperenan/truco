@@ -42,8 +42,7 @@ defmodule Engine.GameServer do
   @doc """
   Play the given card position for the the given player's name.
   """
-  @spec play_player_card(String.t(), String.t(), integer()) ::
-          player_error() | {:ok, Game.t()} | {:finished, Game.t()}
+  @spec play_player_card(String.t(), String.t(), integer()) :: player_error() | {:ok, Game.t()} | {:finished, Game.t()}
   def play_player_card(game_id, player_name, card_position)
       when is_binary(game_id) and is_binary(player_name) and is_integer(card_position) do
     game_id
@@ -57,8 +56,7 @@ defmodule Engine.GameServer do
   Players can only make a truco request in their turn. The game will be blocked and players will not
   be able to do anything else other than answer this truco request.
   """
-  @spec truco(String.t(), String.t()) ::
-          {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
+  @spec truco(String.t(), String.t()) :: {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
   def truco(game_name, player_name) when is_binary(game_name) and is_binary(player_name) do
     game_name
     |> via_tuple()
@@ -127,7 +125,8 @@ defmodule Engine.GameServer do
   end
 
   @impl true
-  def handle_call(:start_game, _from, %Game{started?: true} = game), do: {:reply, {:error, :game_already_started}, game}
+  def handle_call(:start_game, _from, %Game{started?: true} = game),
+    do: {:reply, {:error, :game_already_started}, game}
 
   @impl true
   def handle_call(:start_game, _from, %Game{started?: false} = game) do
@@ -171,11 +170,7 @@ defmodule Engine.GameServer do
   end
 
   @impl true
-  def handle_call(
-        {:answer, player_name, answer},
-        _,
-        %Game{finished?: false, blocked?: true} = game
-      ) do
+  def handle_call({:answer, player_name, answer}, _, %Game{finished?: false, blocked?: true} = game) do
     case Game.answer(game, player_name, answer) do
       {:ok, game} ->
         {:reply, {:ok, game}, game}

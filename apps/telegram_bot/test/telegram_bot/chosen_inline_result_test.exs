@@ -67,13 +67,14 @@ defmodule TelegramBot.ChosenInlineResultTest do
 
       assert reply.to == Integer.to_string(chat.id)
       assert reply.text == "Now is @#{user_b.username} turn."
-      assert reply.reply_markup 
+      assert reply.reply_markup
     end
 
     test "raise an error a card is not found", %{user_a: user} do
       chosen_inline_result = build(:chosen_inline_result, result_id: "Q-clubs", from: user)
 
       error_message = "There is an error when replying a chosen inline result: {:error, :card_not_found}"
+
       assert_raise ChosenInlineResult.Error, error_message, fn ->
         ChosenInlineResult.build_reply(chosen_inline_result)
       end
@@ -83,6 +84,7 @@ defmodule TelegramBot.ChosenInlineResultTest do
       chosen_inline_result = build(:chosen_inline_result, result_id: "Q-clubs", from: build(:user, id: 99999))
 
       error_message = "There is an error when replying a chosen inline result: {:error, :game_not_found}"
+
       assert_raise ChosenInlineResult.Error, error_message, fn ->
         ChosenInlineResult.build_reply(chosen_inline_result)
       end

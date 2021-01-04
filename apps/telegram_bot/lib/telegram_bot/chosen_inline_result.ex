@@ -69,11 +69,12 @@ defmodule TelegramBot.ChosenInlineResult do
       #=> %{inline_query_id: "3975448342490274657", results: [%{...}, ]}
 
   """
-  @spec build_reply(t()) :: t()
+  @spec build_reply(t()) :: map()
   def build_reply(%__MODULE__{from: user, result_id: result_id}) when is_binary(result_id) do
     with {:ok, game_id} <- GameManager.get_game_id(user_id: user.id),
          {:ok, card_position} <- get_card_position(game_id, user.username, result_id),
-         {:ok, game, current_match, next_player} <- play_player_card(game_id, user.username, card_position) do
+         {:ok, game, current_match, next_player} <-
+           play_player_card(game_id, user.username, card_position) do
       text =
         if new_match?(current_match) do
           new_match_text(next_player, current_match, game)
@@ -176,10 +177,10 @@ defmodule TelegramBot.ChosenInlineResult do
   end
 
   def build_inline_button(text: text) do
-      inline_buttons = [
-        %Nadia.Model.InlineKeyboardButton{text: text, switch_inline_query_current_chat: ""}
-      ]
+    inline_buttons = [
+      %Nadia.Model.InlineKeyboardButton{text: text, switch_inline_query_current_chat: ""}
+    ]
 
-      %Nadia.Model.InlineKeyboardMarkup{inline_keyboard: [inline_buttons]}
+    %Nadia.Model.InlineKeyboardMarkup{inline_keyboard: [inline_buttons]}
   end
 end
