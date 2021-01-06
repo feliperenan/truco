@@ -1,73 +1,71 @@
-name: Elixir CI
+name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
   pull_request:
-    branches: [ master ]
+
+env:
+  otp-version: 23.0.2
+  elixir-version: 1.11.3
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install OTP and Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ env.otp-version }}
+          elixir-version: ${{ env.elixir-version }}
+
+      - name: Cache mix deps
+        uses: actions/cache@v2
+        env:
+          cache-name: mix-deps
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ env.otp-version }}-${{ env.elixir-version }}-${{ env.cache-name }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - run: mix deps.get
+      - run: mix deps.unlock --check-unused
+      - run: mix format --check-formatted
+
   test:
     runs-on: ubuntu-latest
 
     services:
-      db:
+      postgres:
         image: postgres:11
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    strategy:
-      matrix:
-        elixir: ['1.11.2']
-        otp: ['23.2']
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
 
-    - name: Set up Elixir
-      uses: actions/setup-elixir@v1
-      with:
-        elixir-version: ${{ matrix.elixir }} # Define the elixir version [required]
-        otp-version: ${{ matrix.otp }} # Define the OTP version [required]
+      - name: Install OTP and Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ env.otp-version }}
+          elixir-version: ${{ env.elixir-version }}
 
-    - name: Retrieve Mix Dependencies Cache
-      uses: actions/cache@v1
-      id: mix-cache #id to use in retrieve action
-      with:
-        path: deps
-        key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+      - name: Cache mix deps
+        uses: actions/cache@v2
+        env:
+          cache-name: mix-deps
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ env.otp-version }}-${{ env.elixir-version }}-${{ env.cache-name }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-    - name: Install Mix Dependencies
-      if: steps.mix-cache.outputs.cache-hit != 'true'
-      run: |
-        mix local.rebar --force
-        mix local.hex --force
-        mix deps.get
-
-    - name: Check Formatting
-      run: mix format --check-formatted
-
-    - name: Run tests
-      run: mix test
-
-    - name: Retrieve PLT Cache
-      uses: actions/cache@v1
-      id: plt-cache
-      with:
-        path: priv/plts
-        key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-
-    - name: Create PLTs
-      if: steps.plt-cache.outputs.cache-hit != 'true'
-      run: |
-        mkdir -p priv/plts
-        mix dialyzer --plt
-
-    - name: Run dialyzer
-      run: mix dialyzer --no-check --halt-exit-status
+      - run: mix deps.get
+      - run: MIX_ENV=test mix deps.compile --skip-umbrella-children
+      - run: MIX_ENV=test mix do compile, test
