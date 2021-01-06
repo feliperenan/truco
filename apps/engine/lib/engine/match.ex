@@ -3,6 +3,7 @@ defmodule Engine.Match do
             deck: [],
             card_faced_up: nil,
             rounds: [],
+            starter_player_id: 1,
             next_player_id: 1,
             finished?: false,
             points: 1,
@@ -11,7 +12,18 @@ defmodule Engine.Match do
 
   alias Engine.{Card, Deck, Player, PlayerHand, Round}
 
-  @type t :: %__MODULE__{}
+  @type t :: %__MODULE__{
+          players_hands: list(PlayerHand.t()),
+          deck: Deck.t(),
+          card_faced_up: Card.t(),
+          rounds: list(Round.t()),
+          starter_player_id: integer(),
+          next_player_id: integer(),
+          finished?: boolean(),
+          points: integer(),
+          team_winner: integer(),
+          total_players: integer()
+        }
 
   @players_limit [2, 4]
 
@@ -27,12 +39,14 @@ defmodule Engine.Match do
         %Player{id: 1, name: "Felipe", team_id: 1},
         %Player{id: 2, name: "Carlos", team_id: 2}
       ]
-      Match.new(players)
+      Match.new(players, 1)
       #=> %Match{}
 
   """
-  @spec new(list(Player.t())) :: t()
-  def new(players) when length(players) in @players_limit do
+  @spec new(list(Player.t()), integer()) :: t()
+  def new(players, starter_player_id \\ 1)
+
+  def new(players, starter_player_id) when length(players) in @players_limit do
     {card_faced_up, deck} = build_start_deck()
     deck = set_special(deck, card_faced_up)
     players_hands = build_players_hands(deck, players)
@@ -42,11 +56,13 @@ defmodule Engine.Match do
       deck: deck,
       players_hands: players_hands,
       total_players: length(players_hands),
-      rounds: [%Round{}]
+      rounds: [%Round{}],
+      starter_player_id: starter_player_id,
+      next_player_id: starter_player_id
     }
   end
 
-  def new(players) when is_list(players) do
+  def new(players, _next_player_id) when is_list(players) do
     message = """
     A match does not support #{length(players)} players. The total of players must be 2 or 4.
     """

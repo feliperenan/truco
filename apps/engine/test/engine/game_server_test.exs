@@ -137,6 +137,20 @@ defmodule Engine.GameServerTest do
     end
 
     @tag game: @game
+    test "change the next player once a match is finished" do
+      {:ok, game} = GameServer.start_game(@game_name)
+
+      %Game{matches: [finished_match, new_mach]} = play_until_match_is_finished(game)
+
+      assert finished_match.finished?
+      assert finished_match.starter_player_id == 1
+
+      refute new_mach.finished?
+      assert new_mach.next_player_id == 2
+      assert new_mach.starter_player_id == 2
+    end
+
+    @tag game: @game
     test "finishes the game when some team reaches 12 points" do
       game =
         @game_name
@@ -165,6 +179,20 @@ defmodule Engine.GameServerTest do
     end
 
     defp play_until_game_is_finished({:finished, game}), do: game
+
+    defp play_until_match_is_finished(game) do
+      case game.matches do
+        [current_match] ->
+          card_position = 0
+          player_name = Map.get(@players_map, current_match.next_player_id)
+          {:ok, game} = GameServer.play_player_card(@game_name, player_name, card_position)
+
+          play_until_match_is_finished(game)
+
+        [_finished_match, _current_match] ->
+          game
+      end
+    end
   end
 
   describe "truco/1" do

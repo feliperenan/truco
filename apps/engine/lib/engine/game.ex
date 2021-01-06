@@ -208,7 +208,13 @@ defmodule Engine.Game do
         {:finished, %{game | finished?: true, winner: current_match.team_winner, score: new_score}}
 
       _points ->
-        {:ok, %{game | matches: game.matches ++ [Match.new(game.players)], score: new_score}}
+        next_player_to_start = next_starter(game.players, current_match.starter_player_id)
+        matches = game.matches ++ [Match.new(game.players, next_player_to_start)]
+
+        {:ok, %{game | matches: matches, score: new_score}}
     end
   end
+
+  defp next_starter(players, starter_player_id) when length(players) == starter_player_id, do: 1
+  defp next_starter(_players, starter_player_id), do: starter_player_id + 1
 end
