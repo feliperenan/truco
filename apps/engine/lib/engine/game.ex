@@ -217,4 +217,24 @@ defmodule Engine.Game do
 
   defp next_starter(players, starter_player_id) when length(players) == starter_player_id, do: 1
   defp next_starter(_players, starter_player_id), do: starter_player_id + 1
+
+  @doc """
+  Finish the given game.
+  """
+  @spec finish_game(t()) :: t()
+  def finish_game(%__MODULE__{} = game), do: %{game | finished?: true}
+
+  @doc """
+  Check if there are no players in the game.
+  """
+  @spec without_players?(t()) :: boolean()
+  def without_players?(%__MODULE__{players: players}), do: Enum.empty?(players)
+
+  @doc """
+  Remove a player from the game.
+  """
+  @spec remove_player(t(), String.t()) :: t()
+  def remove_player(%__MODULE__{players: players} = game, player_name) do
+    %{game | players: Enum.reject(players, &(&1.name == player_name))}
+  end
 end

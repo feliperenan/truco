@@ -357,4 +357,24 @@ defmodule Engine.GameServerTest do
       assert {:error, :not_player_turn} == GameServer.truco(@game_name, "Felipe")
     end
   end
+
+  describe "leave/2" do
+    setup :start_game_server
+
+    test "remove the player who requested to leave" do
+      GameServer.start_game(@game_name)
+
+      {:ok, _game} = GameServer.join_player(@game_name, "Felipe")
+      {:ok, _game} = GameServer.join_player(@game_name, "Renan")
+
+      {:finished, game} = GameServer.leave(@game_name, "Renan")
+
+      assert game.finished?
+      assert length(game.players)
+    end
+
+    test "kills the game process if all players leave the game"
+
+    test "returns an error if the given player is not present on the game"
+  end
 end
