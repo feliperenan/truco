@@ -107,4 +107,7 @@ defmodule Engine do
       {:error, :game_not_found}
     end
   end
+
+  @spec leave(game_id(), player_name()) :: {:ok, Game.t()} | :finished
+  defdelegate leave(game_id, player_name), to: GameServer
 end
