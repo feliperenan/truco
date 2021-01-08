@@ -1,71 +1,24 @@
 name: CI
-
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-
-env:
-  otp-version: 23.0.2
-  elixir-version: 1.11.3
+on: [push, pull_request]
 
 jobs:
-  format:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v1
-
-      - name: Install OTP and Elixir
-        uses: actions/setup-elixir@v1
-        with:
-          otp-version: ${{ env.otp-version }}
-          elixir-version: ${{ env.elixir-version }}
-
-      - name: Cache mix deps
-        uses: actions/cache@v2
-        env:
-          cache-name: mix-deps
-        with:
-          path: deps
-          key: ${{ runner.os }}-${{ env.otp-version }}-${{ env.elixir-version }}-${{ env.cache-name }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-
-      - run: mix deps.get
-      - run: mix deps.unlock --check-unused
-      - run: mix format --check-formatted
-
   test:
     runs-on: ubuntu-latest
+    env:
+      FORCE_COLOR: 1
 
-    services:
-      postgres:
-        image: postgres:11
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - elixir: 1.11.2
+            otp: 23.1.1
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+      - name: Download released earth
+        run: "sudo /bin/sh -c 'wget https://github.com/earthly/earthly/releases/download/v0.4.1/earthly-linux-amd64 -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'"
+      - name: Execute tests
+        run: earthly -P --build-arg ELIXIR=${{ matrix.elixir }}  --build-arg OTP=${{ matrix.otp }} +test
 
-      - name: Install OTP and Elixir
-        uses: actions/setup-elixir@v1
-        with:
-          otp-version: ${{ env.otp-version }}
-          elixir-version: ${{ env.elixir-version }}
-
-      - name: Cache mix deps
-        uses: actions/cache@v2
-        env:
-          cache-name: mix-deps
-        with:
-          path: deps
-          key: ${{ runner.os }}-${{ env.otp-version }}-${{ env.elixir-version }}-${{ env.cache-name }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-
-      - run: mix deps.get
-      - run: MIX_ENV=test mix deps.compile --skip-umbrella-children
-      - run: MIX_ENV=test mix do compile, test
