@@ -5,6 +5,8 @@ defmodule Engine.Round do
 
   alias Engine.Card
 
+  @type t :: %__MODULE__{played_cards: list(Card.t()), winner: integer(), finished?: boolean()}
+
   @doc """
   TODO: add doc
   """

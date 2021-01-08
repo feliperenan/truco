@@ -8,6 +8,8 @@ defmodule Engine.Deck do
 
   alias Engine.Card
 
+  @type t :: %__MODULE__{cards: list(Card.t())}
+
   cards =
     for suit <- ~w(diamonds spades hearts clubs)a do
       for symbol <- ~w(3 2 A 4 5 6 7 Q J K) do
