@@ -117,10 +117,7 @@ defmodule TelegramBot.MessageTest do
       Try /join to join the game or /start to start the game.
       """
 
-      assert %{
-               text: text,
-               to: message.chat.id
-             } == Message.build_reply(message)
+      assert %{text: text, to: message.chat.id} == Message.build_reply(message)
     end
 
     test "/join joins who sent the message to the created game" do
@@ -131,10 +128,7 @@ defmodule TelegramBot.MessageTest do
       text =
         "You have joined the game. Now, wait for other players or send /start to start the game in case you have enough players."
 
-      assert %{
-               text: text,
-               to: message.chat.id
-             } == Message.build_reply(message)
+      assert %{text: text, to: message.chat.id} == Message.build_reply(message)
     end
 
     test "/join returns an error in case there is no game created" do
@@ -142,10 +136,7 @@ defmodule TelegramBot.MessageTest do
 
       text = "Game has not been created yet. First you need to send /new in order to create the game."
 
-      assert %{
-               text: text,
-               to: message.chat.id
-             } == Message.build_reply(message)
+      assert %{text: text, to: message.chat.id} == Message.build_reply(message)
     end
 
     test "/join does not join the same player twice in the same game" do
@@ -155,10 +146,7 @@ defmodule TelegramBot.MessageTest do
 
       Message.build_reply(message)
 
-      assert %{
-               text: "You have already joined a game.",
-               to: message.chat.id
-             } == Message.build_reply(message)
+      assert %{text: "You have already joined a game.", to: message.chat.id} == Message.build_reply(message)
     end
 
     test "/join supports 4 players in total" do
@@ -207,6 +195,45 @@ defmodule TelegramBot.MessageTest do
 
       assert reply.text == "Game has been started already."
       assert reply.to == message.chat.id
+    end
+
+    test "/leave removes who sent the this command from the game" do
+      chat = build(:chat, type: "group")
+      user_a = build(:user, id: 1, username: "user-1")
+      user_b = build(:user, id: 2, username: "user-2")
+
+      new_game()
+      join_player(chat, user_a)
+      join_player(chat, user_b)
+
+      # leave user_a from the game
+      reply =
+        :message
+        |> build(text: "/leave", chat: chat, from: user_a)
+        |> Message.build_reply()
+
+      assert reply.text =~
+               "@user-1 have left the game. The game has been restarted and is ready for new players to join."
+
+      assert reply.to == chat.id
+
+      # leave user_b from the game
+      reply =
+        :message
+        |> build(text: "/leave", chat: chat, from: user_b)
+        |> Message.build_reply()
+
+      assert reply.text =~ "This game has been finished since all players have left the game."
+      assert reply.to == chat.id
+
+      # leave user_a again 
+      reply =
+        :message
+        |> build(text: "/leave", chat: chat, from: user_a)
+        |> Message.build_reply()
+
+      assert reply.text =~ "You are not in the game at the moment."
+      assert reply.to == chat.id
     end
   end
 end

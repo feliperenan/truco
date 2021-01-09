@@ -177,6 +177,25 @@ defmodule TelegramBot.Message do
     end
   end
 
+  def build_reply(%__MODULE__{text: "/leave", chat: %{type: "group"} = chat, from: from}) do
+    case GameManager.remove_user(chat, from.id) do
+      {:ok, game_id} ->
+        text =
+          case Engine.leave(game_id, from.username) do
+            {:ok, _game} ->
+              "@#{from.username} have left the game. The game has been restarted and is ready for new players to join."
+
+            :finished ->
+              "This game has been finished since all players have left the game."
+          end
+
+        %{to: chat.id, text: text}
+
+      {:error, :user_not_in_game} ->
+        %{to: chat.id, text: "You are not in the game at the moment."}
+    end
+  end
+
   # For now I'm ignore messages that includes a photo since it likely comes from a `inline_query` which already builds
   # a reply back to user.
   def build_reply(%__MODULE__{photo: photo}) when is_list(photo), do: :ignore
