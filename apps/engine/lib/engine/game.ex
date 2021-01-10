@@ -40,13 +40,15 @@ defmodule Engine.Game do
   end
 
   @doc """
-  TODO: add docs.
+  Returns if the game is ready to start.
   """
+  @spec ready?(t()) :: boolean()
   def ready?(%__MODULE__{players: players}), do: length(players) in [2, 4, 6]
 
   @doc """
-  TODO: add docs.
+  Starts a match as long as it has enough players.
   """
+  @spec start_match(t()) :: t()
   def start_match(%__MODULE__{players: players} = game) do
     match = Match.new(players)
     score = build_initial_score(players)
@@ -217,4 +219,34 @@ defmodule Engine.Game do
 
   defp next_starter(players, starter_player_id) when length(players) == starter_player_id, do: 1
   defp next_starter(_players, starter_player_id), do: starter_player_id + 1
+
+  @doc """
+  Reset the game to its initial state.
+  """
+  @spec reset_game(t()) :: t()
+  def reset_game(%__MODULE__{} = game),
+    do: %{
+      game
+      | matches: [],
+        started?: false,
+        finished?: false,
+        score: %{},
+        winner: nil,
+        blocked?: false,
+        blocked_by: nil
+    }
+
+  @doc """
+  Check if there are no players in the game.
+  """
+  @spec without_players?(t()) :: boolean()
+  def without_players?(%__MODULE__{players: players}), do: Enum.empty?(players)
+
+  @doc """
+  Remove a player from the game.
+  """
+  @spec remove_player(t(), String.t()) :: t()
+  def remove_player(%__MODULE__{players: players} = game, player_name) do
+    %{game | players: Enum.reject(players, &(&1.name == player_name))}
+  end
 end

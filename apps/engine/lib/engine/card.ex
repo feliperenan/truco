@@ -92,6 +92,7 @@ defmodule Engine.Card do
       %Card{symbol: "A", suit: :hearts, special: true, strength: 12}
 
   """
+  @spec set_special(t(), t()) :: t()
   def set_special(%__MODULE__{} = card, faced_up) do
     {_sym, card_pos} = get_card_position(card)
 

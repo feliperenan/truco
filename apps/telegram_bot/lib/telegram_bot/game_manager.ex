@@ -63,6 +63,32 @@ defmodule TelegramBot.GameManager do
     end)
   end
 
+  @doc """
+  Removes the player from a game.
+
+  ### Examples
+
+      iex> GameManager.remove_user(%{id: 1, title: "my-group"}, 19386910)
+      {:ok, "my-group-1"}
+  """
+  @spec remove_user(chat(), integer()) :: {:ok, String.t()} | {:error, :user_not_in_game}
+  def remove_user(chat, user_id) do
+    game_id = Integer.to_string(chat.id)
+
+    Agent.get_and_update(__MODULE__, fn state ->
+      if user_in_some_game?(state, user_id) do
+        new_state =
+          Map.update(state, game_id, [], fn users ->
+            Enum.reject(users, &(&1 == user_id))
+          end)
+
+        {{:ok, game_id}, new_state}
+      else
+        {{:error, :user_not_in_game}, state}
+      end
+    end)
+  end
+
   defp user_in_some_game?(state, user_id) do
     Enum.any?(state, fn {_game_id, user_ids} -> user_id in user_ids end)
   end

@@ -10,9 +10,10 @@ defmodule TelegramBot do
 
   ### Commands
 
-  - /new      - it will create a new game in the chat group.
-  - /join     - it will join the sender to the created game.
-  - /start    - it will start a the game as long as it has enough players.
+  - /new   - creates a new game in the chat group.
+  - /join  - joins the sender to a game.
+  - /start - starts a the game as long as it has enough players.
+  - /leave - removes the sender from the game.
 
   ### Gameplay example
 

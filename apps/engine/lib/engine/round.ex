@@ -3,11 +3,18 @@ defmodule Engine.Round do
             winner: nil,
             finished?: false
 
-  alias Engine.Card
+  alias Engine.{Card, Player}
+
+  @type t :: %__MODULE__{
+          played_cards: list(Card.t()),
+          winner: Player.t() | :tied | nil,
+          finished?: boolean()
+        }
 
   @doc """
-  TODO: add doc
+  Play the given player card in this round.
   """
+  @spec play_card(t(), Player.t(), Card.t(), integer()) :: t()
   def play_card(%__MODULE__{finished?: true}, _player, _card, _total_players),
     do: {:error, :finished}
 

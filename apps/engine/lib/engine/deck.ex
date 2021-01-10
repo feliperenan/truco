@@ -8,6 +8,8 @@ defmodule Engine.Deck do
 
   alias Engine.Card
 
+  @type t :: %__MODULE__{cards: list(Card.t())}
+
   cards =
     for suit <- ~w(diamonds spades hearts clubs)a do
       for symbol <- ~w(3 2 A 4 5 6 7 Q J K) do
@@ -17,7 +19,15 @@ defmodule Engine.Deck do
 
   @cards List.flatten(cards)
 
+  @doc """
+  Returns a shuffled deck.
+  """
+  @spec new() :: list(Card.t())
   def new, do: Enum.shuffle(@cards)
 
+  @doc """
+  Returns a unshuffled deck.
+  """
+  @spec fixed() :: list(Card.t())
   def fixed, do: @cards
 end

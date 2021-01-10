@@ -357,4 +357,47 @@ defmodule Engine.GameServerTest do
       assert {:error, :not_player_turn} == GameServer.truco(@game_name, "Felipe")
     end
   end
+
+  describe "leave/2" do
+    setup :start_game_server
+
+    test "remove the player who requested to leave and returns new game ready for new players to join" do
+      GameServer.start_game(@game_name)
+
+      {:ok, _game} = GameServer.join_player(@game_name, "Felipe")
+      {:ok, _game} = GameServer.join_player(@game_name, "Renan")
+
+      assert {:ok,
+              %Engine.Game{
+                blocked?: false,
+                blocked_by: nil,
+                finished?: false,
+                matches: [],
+                players: [%Engine.Player{id: 1, name: "Felipe", team_id: 1}],
+                score: %{},
+                started?: false,
+                winner: nil
+              }} == GameServer.leave(@game_name, "Renan")
+    end
+
+    test "kills the game process if all players leave the game" do
+      GameServer.start_game(@game_name)
+
+      {:ok, _game} = GameServer.join_player(@game_name, "Felipe")
+      {:ok, _game} = GameServer.join_player(@game_name, "Renan")
+
+      {:ok, _game} = GameServer.leave(@game_name, "Felipe")
+
+      assert :finished == GameServer.leave(@game_name, "Renan")
+    end
+
+    test "do nothing if the given player name is not present in the game" do
+      GameServer.start_game(@game_name)
+
+      {:ok, _game} = GameServer.join_player(@game_name, "Felipe")
+      {:ok, game} = GameServer.join_player(@game_name, "Renan")
+
+      assert {:ok, ^game} = GameServer.leave(@game_name, "Carlos")
+    end
+  end
 end

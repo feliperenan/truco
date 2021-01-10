@@ -100,6 +100,16 @@ defmodule Engine.GameServer do
     |> GenServer.call(:get)
   end
 
+  @doc """
+  Leave the given player from the game. In case all players leave the game, the process will be stopped.
+  """
+  @spec leave(String.t(), String.t()) :: {:ok, Game.t()} | :finished
+  def leave(game_name, player_name) when is_binary(game_name) do
+    game_name
+    |> via_tuple()
+    |> GenServer.call({:leave, player_name})
+  end
+
   # Uses Registry to register the game in the state.
   #
   # via tuple is a way to tell Elixir that we'll use a custom module to register our processes. In
@@ -186,4 +196,15 @@ defmodule Engine.GameServer do
 
   @impl true
   def handle_call(:get, _, game), do: {:reply, game, game}
+
+  @impl true
+  def handle_call({:leave, player_name}, _, game) do
+    game = game |> Game.remove_player(player_name) |> Game.reset_game()
+
+    if Game.without_players?(game) do
+      {:stop, :normal, :finished, game}
+    else
+      {:reply, {:ok, game}, game}
+    end
+  end
 end
