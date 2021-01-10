@@ -1,6 +1,6 @@
 defmodule Engine.Match do
   defstruct players_hands: [],
-            deck: [],
+            deck: nil,
             card_faced_up: nil,
             rounds: [],
             starter_player_id: 1,
@@ -14,14 +14,14 @@ defmodule Engine.Match do
 
   @type t :: %__MODULE__{
           players_hands: list(PlayerHand.t()),
-          deck: Deck.t(),
-          card_faced_up: Card.t(),
+          deck: list(),
+          card_faced_up: Card.t() | nil,
           rounds: list(Round.t()),
           starter_player_id: integer(),
           next_player_id: integer(),
           finished?: boolean(),
           points: integer(),
-          team_winner: integer(),
+          team_winner: integer() | nil,
           total_players: integer()
         }
 
@@ -102,8 +102,9 @@ defmodule Engine.Match do
   end
 
   @doc """
-  TODO: add docs.
+  Play a player card in the round according to the given card position.
   """
+  @spec play_player_card(t(), Player.t(), integer()) :: t()
   def play_player_card(%__MODULE__{} = match, player, card_position) do
     %{next_player_id: next_player_id, total_players: total_players} = match
 

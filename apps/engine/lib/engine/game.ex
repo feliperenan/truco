@@ -40,13 +40,15 @@ defmodule Engine.Game do
   end
 
   @doc """
-  TODO: add docs.
+  Returns if the game is ready to start.
   """
+  @spec ready?(t()) :: boolean()
   def ready?(%__MODULE__{players: players}), do: length(players) in [2, 4, 6]
 
   @doc """
-  TODO: add docs.
+  Starts a match as long as it has enough players.
   """
+  @spec start_match(t()) :: t()
   def start_match(%__MODULE__{players: players} = game) do
     match = Match.new(players)
     score = build_initial_score(players)
