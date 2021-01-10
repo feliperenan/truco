@@ -1,7 +1,5 @@
 # Truco Paulista
 
-Writing...
-
 ## Setup
 
 * This project requires Postgres 9.4+ 
@@ -11,13 +9,13 @@ Writing...
 
 ### Running CI build locally
 
-* earthly -P +test 
-* From Github: earthly -P github.com/feliperenan/truco:master+test
+* Locally:
+```bash
+$ earthly -P +test
+```
 
-## Rules
+* From github:
 
-Writing...
-
-## Architecture
-
-Writing...
+```bash
+$ earthly -P github.com/feliperenan/truco:master+test
+```
