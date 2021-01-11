@@ -58,8 +58,7 @@ defmodule Engine do
   @spec play_player_card(game_id(), player_name(), integer()) :: {:ok, Game.t()}
   defdelegate play_player_card(game_id, player_name, card_position), to: GameServer
 
-  @spec truco(game_id(), player_name()) ::
-          {:ok, Game.t()} | {:finished, Game.t()} | Game.player_error()
+  @spec truco(game_id(), player_name()) :: {:ok, Game.t()} | Game.player_error()
   defdelegate truco(game, player_name), to: GameServer
 
   @spec answer(game_id(), player_name(), answers()) ::

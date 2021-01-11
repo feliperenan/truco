@@ -196,6 +196,25 @@ defmodule TelegramBot.Message do
     end
   end
 
+  def build_reply(%__MODULE__{text: "/truco", chat: %{type: "group"} = chat, from: from}) do
+    with {:ok, game_id} <- GameManager.get_game_id(user_id: from.id),
+         {:ok, game} <- Engine.truco(game_id, from.username) do
+      #  TODO:
+      #  The another team will be asked to either accept, reject or increase points (6, 9 or 12). Should I Answer a
+      #  Keyboard markup or a inline query?
+      %{to: chat.id, text: "implementing..."}
+    else
+      {:error, :points_cannot_be_increased} ->
+        %{to: chat.id, text: "You can't ask truco since points already achieved 12."}
+
+      {:error, :player_not_found} ->
+        %{to: chat.id, text: "You are not in the game."}
+
+      {:error, :not_player_turn} ->
+        %{to: chat.id, text: "It is not your turn."}
+    end
+  end
+
   # For now I'm ignore messages that includes a photo since it likely comes from a `inline_query` which already builds
   # a reply back to user.
   def build_reply(%__MODULE__{photo: photo}) when is_list(photo), do: :ignore

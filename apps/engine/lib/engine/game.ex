@@ -68,7 +68,11 @@ defmodule Engine.Game do
   @doc """
   Change the game state to blocked since it needs an answer from the another team.
   """
-  @spec truco(t(), String.t()) :: {:ok, t()} | {:error, atom()}
+  @spec truco(t(), String.t()) ::
+          {:ok, t()}
+          | {:error, :points_cannot_be_increased}
+          | {:error, :player_not_found}
+          | {:error, :not_player_turn}
   def truco(%__MODULE__{} = game, player_name) do
     current_match = List.last(game.matches)
 
