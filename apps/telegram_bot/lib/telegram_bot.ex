@@ -1,4 +1,5 @@
 defmodule TelegramBot do
+  alias TelegramBot.CallbackQuery
   alias TelegramBot.ChosenInlineResult
   alias TelegramBot.InlineQuery
   alias TelegramBot.Message
@@ -91,6 +92,18 @@ defmodule TelegramBot do
       chosen_inline_result
       |> ChosenInlineResult.new()
       |> ChosenInlineResult.build_reply()
+
+    reply_markup = Map.get(reply, :reply_markup, %{})
+    {:ok, _message} = Nadia.send_message(reply.to, reply.text, reply_markup: reply_markup)
+
+    :ok
+  end
+
+  def build_reply(%{"callback_query" => _callback_query} = callback_query) do
+    reply =
+      callback_query
+      |> CallbackQuery.new()
+      |> CallbackQuery.build_reply()
 
     reply_markup = Map.get(reply, :reply_markup, %{})
     {:ok, _message} = Nadia.send_message(reply.to, reply.text, reply_markup: reply_markup)

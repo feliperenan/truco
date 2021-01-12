@@ -73,8 +73,7 @@ defmodule TelegramBot.ChosenInlineResult do
   def build_reply(%__MODULE__{from: user, result_id: result_id}) when is_binary(result_id) do
     with {:ok, game_id} <- GameManager.get_game_id(user_id: user.id),
          {:ok, card_position} <- get_card_position(game_id, user.username, result_id),
-         {:ok, game, current_match, next_player} <-
-           play_player_card(game_id, user.username, card_position) do
+         {:ok, game, current_match, next_player} <- play_player_card(game_id, user.username, card_position) do
       text =
         if new_match?(current_match) do
           new_match_text(next_player, current_match, game)
@@ -142,7 +141,7 @@ defmodule TelegramBot.ChosenInlineResult do
     clubs: "♣️"
   }
 
-  def new_match_text(next_player, current_match, game) do
+  defp new_match_text(next_player, current_match, game) do
     previous_match = Enum.at(game.matches, length(game.matches) - 2)
     suit_emoji = @suit_to_emoji[current_match.card_faced_up.suit]
 

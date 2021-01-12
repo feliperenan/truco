@@ -55,7 +55,9 @@ defmodule TelegramBot.Message do
      #=> %__MODULE__{...}
   """
   @spec new(map()) :: t()
-  def new(%{"message" => message}) do
+  def new(%{"message" => message}), do: new(message)
+
+  def new(message) do
     message_payload =
       message
       |> transform_to_atom_keys()
@@ -199,10 +201,37 @@ defmodule TelegramBot.Message do
   def build_reply(%__MODULE__{text: "/truco", chat: %{type: "group"} = chat, from: from}) do
     with {:ok, game_id} <- GameManager.get_game_id(user_id: from.id),
          {:ok, game} <- Engine.truco(game_id, from.username) do
-      #  TODO:
-      #  The another team will be asked to either accept, reject or increase points (6, 9 or 12). Should I Answer a
-      #  Keyboard markup or a inline query?
-      %{to: chat.id, text: "implementing..."}
+      current_match = List.last(game.matches)
+
+      players_to_answer =
+        game.players
+        |> Enum.reject(&(&1.team_id == game.blocked_by))
+        |> Enum.map(&"@#{&1.name}")
+        |> Enum.join(", ")
+
+      text = ~s"""
+      There is a truco request coming from @#{from.username}
+
+      #{players_to_answer} choose one of the options below:
+      """
+
+      increase_text =
+        case current_match.points do
+          9 -> "Twelve"
+          6 -> "Nine"
+          3 -> "Six"
+          1 -> "Six"
+        end
+
+      inline_buttons = [
+        %Nadia.Model.InlineKeyboardButton{text: "Yes", callback_data: "yes"},
+        %Nadia.Model.InlineKeyboardButton{text: "No", callback_data: "no"},
+        %Nadia.Model.InlineKeyboardButton{text: increase_text, callback_data: "increase"}
+      ]
+
+      reply_markup = %Nadia.Model.InlineKeyboardMarkup{inline_keyboard: [inline_buttons]}
+
+      %{to: chat.id, text: text, reply_markup: reply_markup}
     else
       {:error, :points_cannot_be_increased} ->
         %{to: chat.id, text: "You can't ask truco since points already achieved 12."}
