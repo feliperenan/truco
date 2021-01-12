@@ -356,6 +356,50 @@ defmodule Engine.GameServerTest do
 
       assert {:error, :not_player_turn} == GameServer.truco(@game_name, "Felipe")
     end
+
+    @tag game: @game
+    test "cannot ask truco twice" do
+      GameServer.start_game(@game_name)
+
+      {:ok, game} = GameServer.truco(@game_name, "Felipe")
+
+      assert game.blocked?
+
+      {:ok, game} = GameServer.answer(@game_name, "Nice", :yes)
+
+      refute game.blocked?
+
+      assert {:error, :not_player_turn} == GameServer.truco(@game_name, "Rebeca")
+    end
+
+    @tag game: @game
+    test "does not finish the game when requesting/answering truco" do
+      GameServer.start_game(@game_name)
+
+      {:ok, _game} = GameServer.truco(@game_name, "Felipe")
+      {:ok, %Game{matches: [match]}} = GameServer.answer(@game_name, "Nice", :yes)
+      {:ok, _game} = GameServer.play_player_card(@game_name, "Felipe", 0)
+      assert match.points == 3
+
+      {:ok, _game} = GameServer.truco(@game_name, "Carlos")
+      {:ok, %Game{matches: [match]}} = GameServer.answer(@game_name, "Rebeca", :yes)
+      {:ok, _game} = GameServer.play_player_card(@game_name, "Carlos", 0)
+      assert match.points == 6
+
+      {:ok, _game} = GameServer.truco(@game_name, "Rebeca")
+      {:ok, %Game{matches: [match]}} = GameServer.answer(@game_name, "Nice", :yes)
+      {:ok, _game} = GameServer.play_player_card(@game_name, "Rebeca", 0)
+      assert match.points == 9
+
+      {:ok, _game} = GameServer.truco(@game_name, "Nice")
+      {:ok, %Game{matches: [match]} = game} = GameServer.answer(@game_name, "Felipe", :yes)
+      {:ok, _game} = GameServer.play_player_card(@game_name, "Nice", 0)
+      assert match.points == 12
+      refute match.finished?
+      refute game.finished?
+
+      assert {:error, :points_cannot_be_increased} == GameServer.truco(@game_name, "Felipe")
+    end
   end
 
   describe "leave/2" do

@@ -175,7 +175,7 @@ defmodule TelegramBot.ChosenInlineResult do
     end
   end
 
-  def build_inline_button(text: text) do
+  defp build_inline_button(text: text) do
     inline_buttons = [
       %Nadia.Model.InlineKeyboardButton{text: text, switch_inline_query_current_chat: ""}
     ]

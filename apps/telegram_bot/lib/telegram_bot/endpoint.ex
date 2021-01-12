@@ -47,7 +47,10 @@ defmodule TelegramBot.Endpoint do
       #{inspect(conn.body_params)}
     """)
 
-    TelegramBot.build_reply(conn.body_params)
+    # TODO: temp solution to avoid receiving telegram messages twice when the code breaks.
+    Task.async(fn ->
+      TelegramBot.build_reply(conn.body_params)
+    end)
 
     send_resp(conn, 200, "ok")
   end

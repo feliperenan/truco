@@ -198,6 +198,8 @@ defmodule TelegramBot.Message do
     end
   end
 
+  # TODO: this is a issue requesting truco when points are 12. Somehow the game is set as finished when the match made
+  # 12 points from a truco request.
   def build_reply(%__MODULE__{text: "/truco", chat: %{type: "group"} = chat, from: from}) do
     with {:ok, game_id} <- GameManager.get_game_id(user_id: from.id),
          {:ok, game} <- Engine.truco(game_id, from.username) do
@@ -215,21 +217,7 @@ defmodule TelegramBot.Message do
       #{players_to_answer} choose one of the options below:
       """
 
-      increase_text =
-        case current_match.points do
-          9 -> "Twelve"
-          6 -> "Nine"
-          3 -> "Six"
-          1 -> "Six"
-        end
-
-      inline_buttons = [
-        %Nadia.Model.InlineKeyboardButton{text: "Yes", callback_data: "yes"},
-        %Nadia.Model.InlineKeyboardButton{text: "No", callback_data: "no"},
-        %Nadia.Model.InlineKeyboardButton{text: increase_text, callback_data: "increase"}
-      ]
-
-      reply_markup = %Nadia.Model.InlineKeyboardMarkup{inline_keyboard: [inline_buttons]}
+      reply_markup = build_truco_inline_keyboard(current_match)
 
       %{to: chat.id, text: text, reply_markup: reply_markup}
     else
@@ -250,5 +238,31 @@ defmodule TelegramBot.Message do
 
   def build_reply(%__MODULE__{chat: %{type: "group"} = chat}) do
     %{to: chat.id, text: "Sorry, I didn't understand this message :(."}
+  end
+
+  defp build_truco_inline_keyboard(match) do
+    increase_text =
+      case match.points do
+        9 -> nil
+        6 -> "Twelve"
+        3 -> "Nine"
+        1 -> "Six"
+      end
+
+    inline_buttons =
+      [
+        truco_inline_button(%{text: "Yes", callback_data: "yes"}),
+        truco_inline_button(%{text: "No", callback_data: "no"}),
+        truco_inline_button(%{text: increase_text, callback_data: increase_text})
+      ]
+      |> Enum.reject(&is_nil/1)
+
+    %Nadia.Model.InlineKeyboardMarkup{inline_keyboard: [inline_buttons]}
+  end
+
+  defp truco_inline_button(%{text: nil}), do: nil
+
+  defp truco_inline_button(%{text: text, callback_data: callback_data}) do
+    %Nadia.Model.InlineKeyboardButton{text: text, callback_data: String.downcase(callback_data)}
   end
 end

@@ -1,6 +1,6 @@
 defmodule TelegramBot.CallbackQuery do
   @moduledoc """
-  Provide functions for handling Telegram callback queries that comes from inline queries.
+  Provide functions for handling Telegram callback query that comes from inline queries.
   """
   defstruct [:chat_instance, :data, :from, :id, :message]
 
@@ -20,7 +20,7 @@ defmodule TelegramBot.CallbackQuery do
   end
 
   @doc """
-  Build an `InlineQuery` struct given a inline query payload.
+  Build an `CallbackQuery` struct given a callback data payload.
 
   ### Examples
 
@@ -123,7 +123,7 @@ defmodule TelegramBot.CallbackQuery do
       next_player = Enum.find(game.players, &(&1.id == current_match.next_player_id))
 
       text = ~s"""
-      They have accepted your truco request. This match is worthing #{current_match.points} points.
+      @#{next_player.name} your truco request has been accepted. This match is worthing #{current_match.points} points.
 
       @#{next_player.name} play your card.
       """
@@ -140,11 +140,10 @@ defmodule TelegramBot.CallbackQuery do
   end
 
   @spec build_reply(t()) :: message_reply()
-  def build_reply(%__MODULE__{from: from, data: "increase", message: %Message{chat: chat}}) do
+  def build_reply(%__MODULE__{from: from, data: button_text, message: %Message{chat: chat}})
+      when button_text in ~w(six nine twelve) do
     with {:ok, game_id} <- GameManager.get_game_id(user_id: from.id),
          {:ok, %Engine.Game{blocked?: true} = game} <- Engine.answer(game_id, from.username, :increase) do
-      current_match = List.last(game.matches)
-
       players_to_answer =
         game.players
         |> Enum.reject(&(&1.team_id == game.blocked_by))
@@ -152,24 +151,12 @@ defmodule TelegramBot.CallbackQuery do
         |> Enum.join(", ")
 
       text = ~s"""
-      There is a increase truco request coming from @#{from.username}
+      @#{from.username} wants #{button_text}!!!.
 
       #{players_to_answer} choose one of the options below:
       """
 
-      increase_text =
-        case current_match.points do
-          9 -> "Twelve"
-          6 -> "Nine"
-        end
-
-      inline_buttons = [
-        %Nadia.Model.InlineKeyboardButton{text: "Yes", callback_data: "yes"},
-        %Nadia.Model.InlineKeyboardButton{text: "No", callback_data: "no"},
-        %Nadia.Model.InlineKeyboardButton{text: increase_text, callback_data: "increase"}
-      ]
-
-      reply_markup = %Nadia.Model.InlineKeyboardMarkup{inline_keyboard: [inline_buttons]}
+      reply_markup = build_truco_inline_keyboard(button_text)
 
       %{to: chat.id, text: text, reply_markup: reply_markup}
     else
@@ -188,9 +175,6 @@ defmodule TelegramBot.CallbackQuery do
 
         %{to: chat.id, text: text, reply_markup: reply_markup}
 
-      {:error, :points_cannot_be_increased} ->
-        %{to: chat.id, text: "Points cannot be increased anymore. You should either accept or refuse this request."}
-
       error ->
         error_message = "There is an error when replying a callback_query: #{inspect(error)}"
 
@@ -204,5 +188,30 @@ defmodule TelegramBot.CallbackQuery do
     ]
 
     %Nadia.Model.InlineKeyboardMarkup{inline_keyboard: [inline_buttons]}
+  end
+
+  defp build_truco_inline_keyboard(button_text) do
+    increase_text =
+      case button_text do
+        "twelve" -> nil
+        "nine" -> "Twelve"
+        "six" -> "Nine"
+      end
+
+    inline_buttons =
+      [
+        truco_inline_button(%{text: "Yes", callback_data: "yes"}),
+        truco_inline_button(%{text: "No", callback_data: "no"}),
+        truco_inline_button(%{text: increase_text, callback_data: increase_text})
+      ]
+      |> Enum.reject(&is_nil/1)
+
+    %Nadia.Model.InlineKeyboardMarkup{inline_keyboard: [inline_buttons]}
+  end
+
+  defp truco_inline_button(%{text: nil}), do: nil
+
+  defp truco_inline_button(%{text: text, callback_data: callback_data}) do
+    %Nadia.Model.InlineKeyboardButton{text: text, callback_data: String.downcase(callback_data)}
   end
 end
